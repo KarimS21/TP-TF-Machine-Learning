@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de Criptomonedas - Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .controls {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .model-selector {
+            margin-bottom: 1rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: #28a745;
+        }
+        
+        .status-inactive {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-chart-line me-3"></i>Predicción de Criptomonedas</h1>
+                    <p class="lead">Dashboard de análisis y predicción de precios usando Machine Learning</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="mt-3">
+                        <span class="status-indicator status-active"></span>
+                        <span>Modelos Activos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Controles -->
+        <div class="row">
+            <div class="col-12">
+                <div class="controls">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="model-selector">
+                                <label for="modelSelect" class="form-label">Seleccionar Modelo:</label>
+                                <select class="form-select" id="modelSelect">
+                                    <option value="random_forest">Random Forest</option>
+                                    <option value="linear_regression">Regresión Lineal</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="daysSelect" class="form-label">Días de Predicción:</label>
+                            <select class="form-select" id="daysSelect">
+                                <option value="7">7 días</option>
+                                <option value="15">15 días</option>
+                                <option value="30" selected>30 días</option>
+                                <option value="60">60 días</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button class="btn btn-primary" id="updateChart">
+                                    <i class="fas fa-sync-alt me-2"></i>Actualizar Gráfico
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas -->
+        <div class="row" id="metricsRow">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="rmseValue">-</div>
+                    <div class="metric-label">RMSE</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="maeValue">-</div>
+                    <div class="metric-label">MAE</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="r2Value">-</div>
+                    <div class="metric-label">R²</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value" id="lastPrice">-</div>
+                    <div class="metric-label">Último Precio</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico Principal -->
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-area me-2"></i>Precio de Cierre vs Predicciones</h3>
+                    <div id="mainChart" class="loading">
+                        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        <p class="mt-3">Cargando datos...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Adicionales -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h4><i class="fas fa-chart-bar me-2"></i>Volumen de Transacciones</h4>
+                    <div id="volumeChart" class="loading">
+                        <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h4><i class="fas fa-chart-line me-2"></i>Indicadores Técnicos</h4>
+                    <div id="indicatorsChart" class="loading">
+                        <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class CryptoDashboard {
+            constructor() {
+                this.data = null;
+                this.currentModel = 'random_forest';
+                this.currentDays = 30;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadData();
+            }
+
+            setupEventListeners() {
+                document.getElementById('updateChart').addEventListener('click', () => {
+                    this.updateSettings();
+                    this.loadData();
+                });
+
+                document.getElementById('modelSelect').addEventListener('change', (e) => {
+                    this.currentModel = e.target.value;
+                });
+
+                document.getElementById('daysSelect').addEventListener('change', (e) => {
+                    this.currentDays = parseInt(e.target.value);
+                });
+            }
+
+            updateSettings() {
+                this.currentModel = document.getElementById('modelSelect').value;
+                this.currentDays = parseInt(document.getElementById('daysSelect').value);
+            }
+
+            async loadData() {
+                try {
+                    // Mostrar indicadores de carga
+                    this.showLoading();
+
+                    // Cargar datos del gráfico principal
+                    console.log('Cargando datos desde /api/chart_data...');
+                    const response = await fetch('/api/chart_data');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('Datos recibidos:', data);
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    this.data = data;
+                    this.updateCharts();
+                    this.updateMetrics();
+                    this.hideLoading();
+
+                } catch (error) {
+                    console.error('Error cargando datos:', error);
+                    this.showError(error.message);
+                }
+            }
+
+            showLoading() {
+                const charts = ['mainChart', 'volumeChart', 'indicatorsChart'];
+                charts.forEach(chartId => {
+                    const element = document.getElementById(chartId);
+                    element.innerHTML = `
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                            <p class="mt-2">Cargando...</p>
+                        </div>
+                    `;
+                });
+            }
+
+            hideLoading() {
+                // Los gráficos se crearán y reemplazarán el contenido de carga
+                console.log('Indicadores de carga ocultados');
+            }
+
+            showError(message) {
+                const element = document.getElementById('mainChart');
+                element.innerHTML = `
+                    <div class="text-center text-danger p-4">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                        <p class="mt-3"><strong>Error:</strong> ${message}</p>
+                        <button class="btn btn-outline-primary mt-2" onclick="location.reload()">
+                            <i class="fas fa-redo me-2"></i>Reintentar
+                        </button>
+                    </div>
+                `;
+                
+                // También mostrar error en otros gráficos
+                const charts = ['volumeChart', 'indicatorsChart'];
+                charts.forEach(chartId => {
+                    const element = document.getElementById(chartId);
+                    element.innerHTML = `
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p class="mt-2">Error cargando datos</p>
+                        </div>
+                    `;
+                });
+            }
+
+            updateCharts() {
+                console.log('Actualizando gráficos...');
+                Promise.all([
+                    this.createMainChart(),
+                    this.createVolumeChart(),
+                    this.createIndicatorsChart()
+                ]).then(() => {
+                    console.log('Todos los gráficos actualizados');
+                }).catch(error => {
+                    console.error('Error actualizando gráficos:', error);
+                });
+            }
+
+            createMainChart() {
+                try {
+                    console.log('Creando gráfico principal...');
+                    const historical = this.data.historical;
+                    const predictions = this.data.predictions;
+                    const future = this.data.future;
+
+                    const traces = [
+                        {
+                            x: historical.dates,
+                            y: historical.close,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Precio Histórico',
+                            line: { color: '#1f77b4', width: 2 }
+                        },
+                        {
+                            x: predictions.dates,
+                            y: predictions.actual,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Precio Real (Test)',
+                            line: { color: '#2ca02c', width: 2 }
+                        },
+                        {
+                            x: predictions.dates,
+                            y: predictions[this.currentModel],
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `Predicción ${this.currentModel.replace('_', ' ').toUpperCase()}`,
+                            line: { color: '#ff7f0e', width: 2, dash: 'dash' }
+                        },
+                        {
+                            x: future.dates,
+                            y: future.predictions,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Predicción Futura',
+                            line: { color: '#d62728', width: 2, dash: 'dot' }
+                        }
+                    ];
+
+                    const layout = {
+                        title: 'Evolución del Precio de la Criptomoneda',
+                        xaxis: { 
+                            title: 'Fecha',
+                            type: 'date'
+                        },
+                        yaxis: { 
+                            title: 'Precio de Cierre',
+                            tickformat: '.2f'
+                        },
+                        hovermode: 'x unified',
+                        legend: {
+                            orientation: 'h',
+                            y: -0.2
+                        },
+                        margin: { t: 50, b: 100, l: 60, r: 30 }
+                    };
+
+                    const config = {
+                        responsive: true,
+                        displayModeBar: true,
+                        modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+                    };
+
+                    Plotly.newPlot('mainChart', traces, layout, config).then(() => {
+                        console.log('Gráfico principal creado exitosamente');
+                    }).catch(error => {
+                        console.error('Error creando gráfico principal:', error);
+                        throw error;
+                    });
+                } catch (error) {
+                    console.error('Error en createMainChart:', error);
+                    document.getElementById('mainChart').innerHTML = `
+                        <div class="text-center text-danger p-4">
+                            <i class="fas fa-chart-line fa-3x"></i>
+                            <p class="mt-3">Error creando gráfico principal</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async createVolumeChart() {
+                try {
+                    console.log('Cargando datos para gráfico de volumen...');
+                    const response = await fetch('/api/historical_data');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    const trace = {
+                        x: data.dates,
+                        y: data.volume,
+                        type: 'bar',
+                        name: 'Volumen (log)',
+                        marker: { color: '#9467bd' }
+                    };
+
+                    const layout = {
+                        title: 'Volumen de Transacciones',
+                        xaxis: { title: 'Fecha', type: 'date' },
+                        yaxis: { title: 'Volumen (log)' },
+                        margin: { t: 50, b: 60, l: 60, r: 30 }
+                    };
+
+                    await Plotly.newPlot('volumeChart', [trace], layout, { responsive: true });
+                    console.log('Gráfico de volumen creado exitosamente');
+
+                } catch (error) {
+                    console.error('Error creando gráfico de volumen:', error);
+                    document.getElementById('volumeChart').innerHTML = `
+                        <div class="text-center text-danger p-3">
+                            <i class="fas fa-chart-bar fa-2x"></i>
+                            <p class="mt-2">Error cargando volumen</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async createIndicatorsChart() {
+                try {
+                    console.log('Cargando datos para indicadores técnicos...');
+                    const response = await fetch('/api/historical_data');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    const traces = [
+                        {
+                            x: data.dates,
+                            y: data.rsi,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'RSI',
+                            line: { color: '#ff7f0e' },
+                            yaxis: 'y'
+                        },
+                        {
+                            x: data.dates,
+                            y: data.macd,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'MACD',
+                            line: { color: '#2ca02c' },
+                            yaxis: 'y2'
+                        }
+                    ];
+
+                    const layout = {
+                        title: 'Indicadores Técnicos',
+                        xaxis: { title: 'Fecha', type: 'date' },
+                        yaxis: { 
+                            title: 'RSI', 
+                            side: 'left',
+                            range: [0, 100]
+                        },
+                        yaxis2: {
+                            title: 'MACD',
+                            side: 'right',
+                            overlaying: 'y'
+                        },
+                        margin: { t: 50, b: 60, l: 60, r: 60 }
+                    };
+
+                    await Plotly.newPlot('indicatorsChart', traces, layout, { responsive: true });
+                    console.log('Gráfico de indicadores creado exitosamente');
+
+                } catch (error) {
+                    console.error('Error creando gráfico de indicadores:', error);
+                    document.getElementById('indicatorsChart').innerHTML = `
+                        <div class="text-center text-danger p-3">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                            <p class="mt-2">Error cargando indicadores</p>
+                        </div>
+                    `;
+                }
+            }
+
+            updateMetrics() {
+                try {
+                    console.log('Actualizando métricas...');
+                    const metrics = this.data.metrics[this.currentModel];
+                    const lastPrice = this.data.historical.close[this.data.historical.close.length - 1];
+
+                    // Actualizar métricas numéricas simples
+                    document.getElementById('rmseValue').textContent = metrics.rmse.toFixed(2);
+                    document.getElementById('maeValue').textContent = metrics.mae.toFixed(2);
+                    document.getElementById('r2Value').textContent = metrics.r2.toFixed(3);
+                    document.getElementById('lastPrice').textContent = `$${lastPrice.toFixed(2)}`;
+                    
+                    console.log('Métricas actualizadas');
+                } catch (error) {
+                    console.error('Error actualizando métricas:', error);
+                    // Valores por defecto en caso de error
+                    document.getElementById('rmseValue').textContent = 'N/A';
+                    document.getElementById('maeValue').textContent = 'N/A';
+                    document.getElementById('r2Value').textContent = 'N/A';
+                    document.getElementById('lastPrice').textContent = 'N/A';
+                }
+            }
+
+        }
+
+        // Inicializar dashboard cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            new CryptoDashboard();
+        });
+    </script>
+</body>
+</html>
