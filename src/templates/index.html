@@ -80,6 +80,13 @@
         .status-inactive {
             background-color: #dc3545;
         }
+        
+        .step-controls {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -101,35 +108,49 @@
     </div>
 
     <div class="container-fluid">
-        <!-- Controles -->
-        <div class="row">
+        <!-- Control Global -->
+        <div class="row mb-4">
             <div class="col-12">
                 <div class="controls">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="model-selector">
-                                <label for="modelSelect" class="form-label">Seleccionar Modelo:</label>
-                                <select class="form-select" id="modelSelect">
-                                    <option value="random_forest">Random Forest</option>
-                                    <option value="linear_regression">Regresión Lineal</option>
-                                </select>
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <label for="globalModelSelect" class="form-label">Modelo Global:</label>
+                                    <select id="globalModelSelect" class="form-select">
+                                        <option value="random_forest">Random Forest</option>
+                                        <option value="linear_regression">Regresión Lineal</option>
+                                        <option value="logistic_regression">Regresión Logística</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="globalDaysSelect" class="form-label">Días de Predicción:</label>
+                                    <select id="globalDaysSelect" class="form-select">
+                                        <option value="1">1 día</option>
+                                        <option value="3">3 días</option>
+                                        <option value="7" selected>7 días</option>
+                                        <option value="15">15 días</option>
+                                        <option value="30">30 días</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="globalDateSelect" class="form-label">Fecha de Predicción:</label>
+                                    <input type="date" id="globalDateSelect" class="form-control">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div>
+                                        <button class="btn btn-primary w-100" id="updateAllCharts">
+                                            <i class="fas fa-sync-alt me-2"></i>Actualizar Todos
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <label for="daysSelect" class="form-label">Días de Predicción:</label>
-                            <select class="form-select" id="daysSelect">
-                                <option value="7">7 días</option>
-                                <option value="15">15 días</option>
-                                <option value="30" selected>30 días</option>
-                                <option value="60">60 días</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">&nbsp;</label>
-                            <div>
-                                <button class="btn btn-primary" id="updateChart">
-                                    <i class="fas fa-sync-alt me-2"></i>Actualizar Gráfico
-                                </button>
+                            <div class="text-end">
+                                <h6><i class="fas fa-info-circle me-2"></i>Configuración Global</h6>
+                                <small class="text-muted">Estos parámetros se aplicarán a los 3 pasos del modelo</small>
                             </div>
                         </div>
                     </div>
@@ -137,7 +158,7 @@
             </div>
         </div>
 
-        <!-- Métricas -->
+        <!-- Métricas Generales -->
         <div class="row" id="metricsRow">
             <div class="col-md-3">
                 <div class="metric-card">
@@ -165,14 +186,42 @@
             </div>
         </div>
 
-        <!-- Gráfico Principal -->
+        <!-- Paso 1: Regresión Directa del Precio -->
         <div class="row">
-            <div class="col-12">
+            <div class="col-12 mb-4">
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-area me-2"></i>Precio de Cierre vs Predicciones</h3>
-                    <div id="mainChart" class="loading">
+                    <h3><i class="fas fa-chart-line me-2"></i>Paso 1: Regresión Directa del Precio</h3>
+                    <p class="text-muted">Predicción del valor numérico del precio de cierre</p>
+                    <div id="step1Chart" class="loading">
                         <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
-                        <p class="mt-3">Cargando datos...</p>
+                        <p class="mt-3">Cargando datos del Paso 1...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 2: Clasificación Binaria -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-bar me-2"></i>Paso 2: Clasificación Binaria (Sube/Baja)</h3>
+                    <p class="text-muted">Predicción de la dirección del movimiento del precio</p>
+                    <div id="step2Chart" class="loading">
+                        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
+                        <p class="mt-3">Cargando datos del Paso 2...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 3: Probabilidad de Incremento -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-area me-2"></i>Paso 3: Probabilidad de Incremento Significativo</h3>
+                    <p class="text-muted">Estimación de probabilidad de incremento</p>
+                    <div id="step3Chart" class="loading">
+                        <p class="mt-3">Cargando datos del Paso 3...</p>
                     </div>
                 </div>
             </div>
@@ -204,52 +253,67 @@
         class CryptoDashboard {
             constructor() {
                 this.data = null;
-                this.currentModel = 'random_forest';
-                this.currentDays = 30;
+                this.globalModel = 'random_forest';
+                this.globalDays = 7;
+                this.globalDate = null;
                 this.init();
             }
 
             init() {
                 this.setupEventListeners();
+                this.setupDefaultDate();
                 this.loadData();
             }
 
+            setupDefaultDate() {
+                // Establecer fecha predeterminada (hoy + 7 días)
+                const today = new Date();
+                const futureDate = new Date(today);
+                futureDate.setDate(today.getDate() + 7);
+                
+                const dateString = futureDate.toISOString().split('T')[0];
+                document.getElementById('globalDateSelect').value = dateString;
+                this.globalDate = dateString;
+            }
+
             setupEventListeners() {
-                document.getElementById('updateChart').addEventListener('click', () => {
-                    this.updateSettings();
-                    this.loadData();
+                // Event listeners para controles globales
+                document.getElementById('globalModelSelect').addEventListener('change', (e) => {
+                    this.globalModel = e.target.value;
+                    this.updateAllCharts();
                 });
 
-                document.getElementById('modelSelect').addEventListener('change', (e) => {
-                    this.currentModel = e.target.value;
+                document.getElementById('globalDaysSelect').addEventListener('change', (e) => {
+                    this.globalDays = parseInt(e.target.value);
+                    this.updateAllCharts();
                 });
 
-                document.getElementById('daysSelect').addEventListener('change', (e) => {
-                    this.currentDays = parseInt(e.target.value);
+                document.getElementById('globalDateSelect').addEventListener('change', (e) => {
+                    this.globalDate = e.target.value;
+                    this.updateAllCharts();
+                });
+
+                document.getElementById('updateAllCharts').addEventListener('click', () => {
+                    this.updateAllCharts();
                 });
             }
 
-            updateSettings() {
-                this.currentModel = document.getElementById('modelSelect').value;
-                this.currentDays = parseInt(document.getElementById('daysSelect').value);
+            updateAllCharts() {
+                console.log(`Actualizando todos los gráficos - Modelo: ${this.globalModel}, Días: ${this.globalDays}, Fecha: ${this.globalDate}`);
+                this.updateCharts();
             }
 
             async loadData() {
                 try {
-                    // Mostrar indicadores de carga
                     this.showLoading();
-
-                    // Cargar datos del gráfico principal
-                    console.log('Cargando datos desde /api/chart_data...');
-                    const response = await fetch('/api/chart_data');
+                    console.log('Cargando datos iniciales...');
                     
+                    const response = await fetch('/api/historical_data');
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
                     
                     const data = await response.json();
-                    console.log('Datos recibidos:', data);
-                    
                     if (data.error) {
                         throw new Error(data.error);
                     }
@@ -266,52 +330,48 @@
             }
 
             showLoading() {
-                const charts = ['mainChart', 'volumeChart', 'indicatorsChart'];
+                const charts = ['step1Chart', 'step2Chart', 'step3Chart', 'volumeChart', 'indicatorsChart'];
                 charts.forEach(chartId => {
                     const element = document.getElementById(chartId);
-                    element.innerHTML = `
-                        <div class="loading">
-                            <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                            <p class="mt-2">Cargando...</p>
-                        </div>
-                    `;
+                    if (element) {
+                        element.innerHTML = `
+                            <div class="loading">
+                                <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                                <p class="mt-2">Cargando...</p>
+                            </div>
+                        `;
+                    }
                 });
             }
 
             hideLoading() {
-                // Los gráficos se crearán y reemplazarán el contenido de carga
                 console.log('Indicadores de carga ocultados');
             }
 
             showError(message) {
-                const element = document.getElementById('mainChart');
-                element.innerHTML = `
-                    <div class="text-center text-danger p-4">
-                        <i class="fas fa-exclamation-triangle fa-3x"></i>
-                        <p class="mt-3"><strong>Error:</strong> ${message}</p>
-                        <button class="btn btn-outline-primary mt-2" onclick="location.reload()">
-                            <i class="fas fa-redo me-2"></i>Reintentar
-                        </button>
-                    </div>
-                `;
-                
-                // También mostrar error en otros gráficos
-                const charts = ['volumeChart', 'indicatorsChart'];
+                const charts = ['step1Chart', 'step2Chart', 'step3Chart', 'volumeChart', 'indicatorsChart'];
                 charts.forEach(chartId => {
                     const element = document.getElementById(chartId);
-                    element.innerHTML = `
-                        <div class="text-center text-muted p-3">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <p class="mt-2">Error cargando datos</p>
-                        </div>
-                    `;
+                    if (element) {
+                        element.innerHTML = `
+                            <div class="text-center text-danger p-4">
+                                <i class="fas fa-exclamation-triangle fa-3x"></i>
+                                <p class="mt-3"><strong>Error:</strong> ${message}</p>
+                                <button class="btn btn-outline-primary mt-2" onclick="location.reload()">
+                                    <i class="fas fa-redo me-2"></i>Reintentar
+                                </button>
+                            </div>
+                        `;
+                    }
                 });
             }
 
             updateCharts() {
-                console.log('Actualizando gráficos...');
+                console.log('Actualizando gráficos de los 3 pasos...');
                 Promise.all([
-                    this.createMainChart(),
+                    this.createStep1Chart(),
+                    this.createStep2Chart(),
+                    this.createStep3Chart(),
                     this.createVolumeChart(),
                     this.createIndicatorsChart()
                 ]).then(() => {
@@ -321,50 +381,57 @@
                 });
             }
 
-            createMainChart() {
+            async createStep1Chart() {
                 try {
-                    console.log('Creando gráfico principal...');
-                    const historical = this.data.historical;
-                    const predictions = this.data.predictions;
-                    const future = this.data.future;
-
+                    console.log(`Creando gráfico del Paso 1 - Modelo: ${this.globalModel}, Días: ${this.globalDays}`);
+                    
+                    // Determinar el modelo correcto para el Paso 1 (regresión)
+                    let modelName = this.globalModel;
+                    if (this.globalModel === 'logistic_regression') {
+                        modelName = 'linear_regression'; // Usar regresión lineal si se selecciona logística
+                    }
+                    
+                    const response = await fetch(`/api/step1_data/${modelName}/${this.globalDays}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const stepData = await response.json();
+                    
                     const traces = [
                         {
-                            x: historical.dates,
-                            y: historical.close,
+                            x: stepData.dates,
+                            y: stepData.actual,
                             type: 'scatter',
                             mode: 'lines',
-                            name: 'Precio Histórico',
-                            line: { color: '#1f77b4', width: 2 }
-                        },
-                        {
-                            x: predictions.dates,
-                            y: predictions.actual,
-                            type: 'scatter',
-                            mode: 'lines',
-                            name: 'Precio Real (Test)',
+                            name: 'Precio Real',
                             line: { color: '#2ca02c', width: 2 }
                         },
                         {
-                            x: predictions.dates,
-                            y: predictions[this.currentModel],
+                            x: stepData.dates,
+                            y: stepData.predictions,
                             type: 'scatter',
                             mode: 'lines',
-                            name: `Predicción ${this.currentModel.replace('_', ' ').toUpperCase()}`,
+                            name: `Predicción (${modelName.replace('_', ' ')})`,
                             line: { color: '#ff7f0e', width: 2, dash: 'dash' }
-                        },
-                        {
-                            x: future.dates,
-                            y: future.predictions,
-                            type: 'scatter',
-                            mode: 'lines',
-                            name: 'Predicción Futura',
-                            line: { color: '#d62728', width: 2, dash: 'dot' }
                         }
                     ];
 
+                    // Agregar predicciones futuras si están disponibles
+                    if (stepData.future_dates && stepData.future_predictions) {
+                        traces.push({
+                            x: stepData.future_dates,
+                            y: stepData.future_predictions,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `Predicción Futura (${this.globalDays} días)`,
+                            line: { color: '#d62728', width: 2, dash: 'dot' }
+                        });
+                    }
+
                     const layout = {
-                        title: 'Evolución del Precio de la Criptomoneda',
+                        title: `Paso 1: Regresión - ${modelName.replace('_', ' ').toUpperCase()} (${this.globalDays} días)`,
                         xaxis: { 
                             title: 'Fecha',
                             type: 'date'
@@ -378,7 +445,14 @@
                             orientation: 'h',
                             y: -0.2
                         },
-                        margin: { t: 50, b: 100, l: 60, r: 30 }
+                        margin: { t: 50, b: 100, l: 60, r: 30 },
+                        annotations: [{
+                            text: `RMSE: ${stepData.metrics.rmse.toFixed(2)} | MAE: ${stepData.metrics.mae.toFixed(2)} | R²: ${stepData.metrics.r2.toFixed(3)}`,
+                            xref: 'paper', yref: 'paper',
+                            x: 0, y: 1.02, xanchor: 'left', yanchor: 'bottom',
+                            showarrow: false,
+                            font: { size: 12, color: '#666' }
+                        }]
                     };
 
                     const config = {
@@ -387,18 +461,248 @@
                         modeBarButtonsToRemove: ['pan2d', 'lasso2d']
                     };
 
-                    Plotly.newPlot('mainChart', traces, layout, config).then(() => {
-                        console.log('Gráfico principal creado exitosamente');
-                    }).catch(error => {
-                        console.error('Error creando gráfico principal:', error);
-                        throw error;
-                    });
+                    Plotly.newPlot('step1Chart', traces, layout, config);
+                    
+                    // Actualizar métricas del paso 1
+                    this.updateStep1Metrics(stepData.metrics);
+                    
                 } catch (error) {
-                    console.error('Error en createMainChart:', error);
-                    document.getElementById('mainChart').innerHTML = `
+                    console.error('Error en createStep1Chart:', error);
+                    document.getElementById('step1Chart').innerHTML = `
                         <div class="text-center text-danger p-4">
                             <i class="fas fa-chart-line fa-3x"></i>
-                            <p class="mt-3">Error creando gráfico principal</p>
+                            <p class="mt-3">Error cargando gráfico del Paso 1</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async createStep2Chart() {
+                try {
+                    console.log(`Creando gráfico del Paso 2 - Modelo: ${this.globalModel}, Días: ${this.globalDays}`);
+                    
+                    // Determinar el modelo correcto para el Paso 2 (clasificación)
+                    let modelName = this.globalModel;
+                    if (this.globalModel === 'linear_regression') {
+                        modelName = 'logistic_regression'; // Usar regresión logística si se selecciona lineal
+                    }
+                    
+                    const response = await fetch(`/api/step2_data/${modelName}/${this.globalDays}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const stepData = await response.json();
+                    
+                    // Convertir a valores categóricos para visualización
+                    const actualCategories = stepData.actual.map(val => val ? 'Sube' : 'Baja');
+                    const predCategories = stepData.predictions.map(val => val ? 'Sube' : 'Baja');
+                    
+                    const traces = [
+                        {
+                            x: stepData.dates,
+                            y: actualCategories,
+                            type: 'scatter',
+                            mode: 'markers',
+                            name: 'Dirección Real',
+                            marker: { 
+                                color: stepData.actual.map(val => val ? '#2ca02c' : '#d62728'),
+                                size: 8
+                            }
+                        },
+                        {
+                            x: stepData.dates,
+                            y: stepData.probabilities,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Probabilidad de Subida',
+                            line: { color: '#1f77b4', width: 2 },
+                            yaxis: 'y2'
+                        }
+                    ];
+                    
+                    // Agregar predicción futura si está disponible
+                    if (stepData.future_prediction) {
+                        // Calcular la fecha futura basada en la última fecha de los datos
+                        const lastDate = new Date(stepData.dates[stepData.dates.length - 1]);
+                        const futureDate = new Date(lastDate);
+                        futureDate.setDate(futureDate.getDate() + stepData.future_prediction.prediction_days);
+                        
+                        traces.push({
+                            x: [futureDate.toISOString().split('T')[0]],
+                            y: [stepData.future_prediction.prediction ? 'Sube' : 'Baja'],
+                            type: 'scatter',
+                            mode: 'markers',
+                            name: `Predicción Futura (${stepData.future_prediction.probability.toFixed(3)} prob.)`,
+                            marker: {
+                                color: stepData.future_prediction.prediction ? '#2ca02c' : '#d62728',
+                                size: 15,
+                                symbol: 'star'
+                            }
+                        });
+                    }
+
+                    const layout = {
+                        title: `Paso 2: Clasificación - ${modelName.replace('_', ' ').toUpperCase()} (${this.globalDays} días)`,
+                        xaxis: { 
+                            title: 'Fecha',
+                            type: 'date'
+                        },
+                        yaxis: { 
+                            title: 'Dirección del Precio',
+                            categoryorder: 'array',
+                            categoryarray: ['Baja', 'Sube']
+                        },
+                        yaxis2: {
+                            title: 'Probabilidad',
+                            overlaying: 'y',
+                            side: 'right',
+                            range: [0, 1]
+                        },
+                        hovermode: 'x unified',
+                        legend: {
+                            orientation: 'h',
+                            y: -0.2
+                        },
+                        margin: { t: 50, b: 100, l: 60, r: 60 },
+                        annotations: [{
+                            text: `Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | F1: ${stepData.metrics.f1_score.toFixed(3)} | AUC: ${stepData.metrics.roc_auc.toFixed(3)}${stepData.future_prediction ? ` | Predicción ${stepData.future_prediction.prediction_days}d: ${stepData.future_prediction.prediction ? 'Sube' : 'Baja'} (${(stepData.future_prediction.probability * 100).toFixed(1)}%)` : ''}`,
+                            xref: 'paper', yref: 'paper',
+                            x: 0, y: 1.02, xanchor: 'left', yanchor: 'bottom',
+                            showarrow: false,
+                            font: { size: 12, color: '#666' }
+                        }]
+                    };
+
+                    const config = {
+                        responsive: true,
+                        displayModeBar: true,
+                        modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+                    };
+
+                    Plotly.newPlot('step2Chart', traces, layout, config);
+                    
+                } catch (error) {
+                    console.error('Error en createStep2Chart:', error);
+                    document.getElementById('step2Chart').innerHTML = `
+                        <div class="text-center text-danger p-4">
+                            <i class="fas fa-chart-bar fa-3x"></i>
+                            <p class="mt-3">Error cargando gráfico del Paso 2</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async createStep3Chart() {
+                try {
+                    console.log(`Creando gráfico del Paso 3 - Modelo: ${this.globalModel}, Días: ${this.globalDays}`);
+                    
+                    // Determinar el modelo correcto para el Paso 3 (probabilidad)
+                    let modelName = this.globalModel;
+                    if (this.globalModel === 'linear_regression') {
+                        modelName = 'logistic_regression'; // Usar regresión logística si se selecciona lineal
+                    }
+                    
+                    const response = await fetch(`/api/step3_data/${modelName}/${this.globalDays}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const stepData = await response.json();
+                    
+                    // Crear categorías de probabilidad para colores
+                    const probabilityColors = stepData.probabilities.map(prob => {
+                        if (prob >= 0.7) return '#2ca02c'; // Verde para alta probabilidad
+                        else if (prob >= 0.5) return '#ff7f0e'; // Naranja para probabilidad media
+                        else return '#d62728'; // Rojo para baja probabilidad
+                    });
+                    
+                    const traces = [
+                        {
+                            x: stepData.dates,
+                            y: stepData.probabilities,
+                            type: 'scatter',
+                            mode: 'markers+lines',
+                            name: `Probabilidad de Incremento (${this.globalDays} días)`,
+                            line: { color: '#1f77b4', width: 2 },
+                            marker: {
+                                color: probabilityColors,
+                                size: 8
+                            }
+                        },
+                        {
+                            x: stepData.dates,
+                            y: Array(stepData.dates.length).fill(0.5),
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Umbral 50%',
+                            line: { color: '#666', width: 1, dash: 'dash' }
+                        }
+                    ];
+                    
+                    // Agregar predicción futura si está disponible
+                    if (stepData.future_prediction) {
+                        // Calcular la fecha futura basada en la última fecha de los datos
+                        const lastDate = new Date(stepData.dates[stepData.dates.length - 1]);
+                        const futureDate = new Date(lastDate);
+                        futureDate.setDate(futureDate.getDate() + stepData.future_prediction.prediction_days);
+                        
+                        traces.push({
+                            x: [futureDate.toISOString().split('T')[0]],
+                            y: [stepData.future_prediction.probability],
+                            type: 'scatter',
+                            mode: 'markers',
+                            name: `Predicción Futura (${stepData.future_prediction.probability.toFixed(3)} prob.)`,
+                            marker: {
+                                color: stepData.future_prediction.probability >= 0.5 ? '#2ca02c' : '#d62728',
+                                size: 15,
+                                symbol: 'star'
+                            }
+                        });
+                    }
+
+                    const layout = {
+                        title: `Paso 3: Probabilidad de Incremento - ${modelName.replace('_', ' ').toUpperCase()} (${this.globalDays} días)`,
+                        xaxis: { 
+                            title: 'Fecha',
+                            type: 'date'
+                        },
+                        yaxis: { 
+                            title: 'Probabilidad de Incremento Significativo',
+                            range: [0, 1],
+                            tickformat: '.0%'
+                        },
+                        hovermode: 'x unified',
+                        legend: {
+                            orientation: 'h',
+                            y: -0.2
+                        },
+                        margin: { t: 50, b: 100, l: 60, r: 30 },
+                        annotations: [{
+                            text: `Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | F1: ${stepData.metrics.f1_score.toFixed(3)} | AUC: ${stepData.metrics.roc_auc.toFixed(3)}${stepData.future_prediction ? ` | Predicción ${stepData.future_prediction.prediction_days}d: ${(stepData.future_prediction.probability * 100).toFixed(1)}%` : ''}`,
+                            xref: 'paper', yref: 'paper',
+                            x: 0, y: 1.02, xanchor: 'left', yanchor: 'bottom',
+                            showarrow: false,
+                            font: { size: 12, color: '#666' }
+                        }]
+                    };
+
+                    const config = {
+                        responsive: true,
+                        displayModeBar: true,
+                        modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+                    };
+
+                    Plotly.newPlot('step3Chart', traces, layout, config);
+                    
+                } catch (error) {
+                    console.error('Error en createStep3Chart:', error);
+                    document.getElementById('step3Chart').innerHTML = `
+                        <div class="text-center text-danger p-4">
+                            <i class="fas fa-chart-area fa-3x"></i>
+                            <p class="mt-3">Error cargando gráfico del Paso 3</p>
                         </div>
                     `;
                 }
@@ -407,30 +711,29 @@
             async createVolumeChart() {
                 try {
                     console.log('Cargando datos para gráfico de volumen...');
-                    const response = await fetch('/api/historical_data');
                     
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(data.error);
+                    if (!this.data || !this.data.volume) {
+                        console.log('No hay datos de volumen disponibles');
+                        document.getElementById('volumeChart').innerHTML = `
+                            <div class="text-center text-muted p-3">
+                                <p>No hay datos de volumen disponibles</p>
+                            </div>
+                        `;
+                        return;
                     }
 
                     const trace = {
-                        x: data.dates,
-                        y: data.volume,
+                        x: this.data.dates,
+                        y: this.data.volume,
                         type: 'bar',
-                        name: 'Volumen (log)',
+                        name: 'Volumen',
                         marker: { color: '#9467bd' }
                     };
 
                     const layout = {
                         title: 'Volumen de Transacciones',
                         xaxis: { title: 'Fecha', type: 'date' },
-                        yaxis: { title: 'Volumen (log)' },
+                        yaxis: { title: 'Volumen' },
                         margin: { t: 50, b: 60, l: 60, r: 30 }
                     };
 
@@ -451,22 +754,21 @@
             async createIndicatorsChart() {
                 try {
                     console.log('Cargando datos para indicadores técnicos...');
-                    const response = await fetch('/api/historical_data');
                     
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    
-                    if (data.error) {
-                        throw new Error(data.error);
+                    if (!this.data || !this.data.rsi) {
+                        console.log('No hay datos de indicadores disponibles');
+                        document.getElementById('indicatorsChart').innerHTML = `
+                            <div class="text-center text-muted p-3">
+                                <p>No hay datos de indicadores disponibles</p>
+                            </div>
+                        `;
+                        return;
                     }
 
                     const traces = [
                         {
-                            x: data.dates,
-                            y: data.rsi,
+                            x: this.data.dates,
+                            y: this.data.rsi,
                             type: 'scatter',
                             mode: 'lines',
                             name: 'RSI',
@@ -474,8 +776,8 @@
                             yaxis: 'y'
                         },
                         {
-                            x: data.dates,
-                            y: data.macd,
+                            x: this.data.dates,
+                            y: this.data.macd,
                             type: 'scatter',
                             mode: 'lines',
                             name: 'MACD',
@@ -517,13 +819,19 @@
             updateMetrics() {
                 try {
                     console.log('Actualizando métricas...');
-                    const metrics = this.data.metrics[this.currentModel];
-                    const lastPrice = this.data.historical.close[this.data.historical.close.length - 1];
-
-                    // Actualizar métricas numéricas simples
-                    document.getElementById('rmseValue').textContent = metrics.rmse.toFixed(2);
-                    document.getElementById('maeValue').textContent = metrics.mae.toFixed(2);
-                    document.getElementById('r2Value').textContent = metrics.r2.toFixed(3);
+                    
+                    if (!this.data) {
+                        console.log('No hay datos disponibles para métricas');
+                        return;
+                    }
+                    
+                    // Mostrar métricas generales basadas en el último precio disponible
+                    const lastPrice = this.data.prices ? this.data.prices[this.data.prices.length - 1] : 0;
+                    
+                    // Valores por defecto hasta que se carguen los datos específicos
+                    document.getElementById('rmseValue').textContent = 'Cargando...';
+                    document.getElementById('maeValue').textContent = 'Cargando...';
+                    document.getElementById('r2Value').textContent = 'Cargando...';
                     document.getElementById('lastPrice').textContent = `$${lastPrice.toFixed(2)}`;
                     
                     console.log('Métricas actualizadas');
@@ -537,6 +845,17 @@
                 }
             }
 
+            updateStep1Metrics(metrics) {
+                try {
+                    // Actualizar métricas del Paso 1 (regresión)
+                    document.getElementById('rmseValue').textContent = metrics.rmse ? metrics.rmse.toFixed(2) : 'N/A';
+                    document.getElementById('maeValue').textContent = metrics.mae ? metrics.mae.toFixed(2) : 'N/A';
+                    document.getElementById('r2Value').textContent = metrics.r2 ? metrics.r2.toFixed(3) : 'N/A';
+                    console.log('Métricas del Paso 1 actualizadas');
+                } catch (error) {
+                    console.error('Error actualizando métricas del Paso 1:', error);
+                }
+            }
         }
 
         // Inicializar dashboard cuando se carga la página
