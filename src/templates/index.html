@@ -522,7 +522,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-8">
-                    <h1><i class="fas fa-chart-line me-3"></i>Predicción de Criptomonedas</h1>
+                    <h1><i class="fas fa-chart-line me-3"></i>Predicción de Centrifuge</h1>
                     <p class="lead">Dashboard de análisis y predicción de precios usando Machine Learning</p>
                 </div>
                 <div class="col-md-4 text-end">
@@ -561,7 +561,6 @@
                                         <option value="1">1 día</option>
                                         <option value="7" selected>7 días</option>
                                         <option value="15">15 días</option>
-                                        <option value="30">30 días</option>
                                     </select>
                                 </div>
                             </div>
@@ -596,7 +595,6 @@
                                         <option value="1">1 día</option>
                                         <option value="7" selected>7 días</option>
                                         <option value="15">15 días</option>
-                                        <option value="30">30 días</option>
                                     </select>
                                 </div>
                             </div>
@@ -643,13 +641,24 @@
                                         <option value="1">1 día</option>
                                         <option value="7" >7 días</option>
                                         <option value="15" selected>15 días</option>
-                                        <option value="30">30 días</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div id="step3Chart"></div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div id="step3Chart"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="step3Prediction" class="prediction-card">
+                                <div class="text-center text-muted p-3">
+                                    <i class="fas fa-chart-area fa-2x"></i>
+                                    <p class="mt-2">Selecciona días para ver predicción</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -737,7 +746,6 @@
 
             updateStep3Chart() {
                 console.log(`Actualizando gráfico del Paso 3 - Modelo: ${this.step3Model}, Días: ${this.step3Days}`);
-                this.cleanupChartListeners();
                 this.createStep3Chart();
             }
 
@@ -922,7 +930,7 @@
                     ];
                     
                     // Agregar barras solo para la predicción del modelo
-                    const barHeight = 0.04; // Altura de las barras más notoria para mejor visualización
+                    const barHeight = 0.03; // Altura de las barras más notoria (doble del anterior)
                     
                     // Calcular barras para predicción del modelo
                     const modelPredictionX = [];
@@ -930,18 +938,12 @@
                     const modelPredictionColors = [];
                     const modelPredictionHoverTexts = [];
                     
-                    // Calcular el rango de precios para mejor altura de las barras
-                    const minPrice = Math.min(...stepData.actual_prices);
-                    const maxPrice = Math.max(...stepData.actual_prices);
-                    const priceRange = maxPrice - minPrice;
-                    
                     stepData.predictions.forEach((val, index) => {
                         const basePrice = stepData.actual_prices[index];
-                        const barHeightValue = Math.max(basePrice * barHeight, priceRange * 0.02); // Altura mínima
+                        const barHeightValue = basePrice * barHeight;
                         
                         modelPredictionX.push(stepData.dates[index]);
-                        // Todas las barras alineadas con el precio real
-                        modelPredictionY.push(basePrice);
+                        modelPredictionY.push(val ? basePrice + barHeightValue : basePrice - barHeightValue);
                         modelPredictionColors.push(val ? '#28a745' : '#dc3545');
                         modelPredictionHoverTexts.push(val ? 'Subida ↑' : 'Bajada ↓');
                     });
@@ -953,38 +955,16 @@
                         name: 'Predicción del Modelo',
                         marker: {
                             color: modelPredictionColors,
-                            opacity: 0.9,
+                            opacity: 0.8,
                             line: {
                                 color: modelPredictionColors,
                                 width: 2
                             }
                         },
-                        width: 0.8, // Ancho de las barras más grueso para mejor visibilidad
+                        width: 0.6, // Ancho de las barras más grueso
                         hovertemplate: '<b>%{x}</b><br>Predicción: %{text}<br>Probabilidad: %{customdata:.1%}<extra></extra>',
                         text: modelPredictionHoverTexts,
-                        customdata: stepData.probabilities,
-                        showlegend: false // Ocultar de la leyenda principal
-                    });
-                    
-                    // Agregar trazas adicionales para la leyenda personalizada
-                    traces.push({
-                        x: [null],
-                        y: [null],
-                        type: 'bar',
-                        name: 'Predicción: Incremento ↑',
-                        marker: { color: '#28a745' },
-                        showlegend: true,
-                        hoverinfo: 'skip'
-                    });
-                    
-                    traces.push({
-                        x: [null],
-                        y: [null],
-                        type: 'bar',
-                        name: 'Predicción: Disminución ↓',
-                        marker: { color: '#dc3545' },
-                        showlegend: true,
-                        hoverinfo: 'skip'
+                        customdata: stepData.probabilities
                     });
                     
                     // Agregar predicción futura si está disponible
@@ -1042,13 +1022,10 @@
                         hovermode: 'x unified',
                         legend: {
                             orientation: 'h',
-                            y: -0.2,
-                            x: 0.1,
-                            bgcolor: 'rgba(255,255,255,0.8)',
-                            bordercolor: 'rgba(0,0,0,0.2)',
-                            borderwidth: 1
+                            y: -0.15,
+                            x: 0.1
                         },
-                        margin: { t: 50, b: 120, l: 60, r: 60 },
+                        margin: { t: 50, b: 100, l: 60, r: 60 },
                         annotations: [{
                             text: `Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | F1: ${stepData.metrics.f1_score.toFixed(3)} | AUC: ${stepData.metrics.roc_auc.toFixed(3)}${stepData.future_prediction ? ` | Predicción ${stepData.future_prediction.prediction_days}d: ${stepData.future_prediction.prediction ? 'Sube' : 'Baja'} (${(stepData.future_prediction.probability * 100).toFixed(1)}%)` : ''}`,
                             xref: 'paper', yref: 'paper',
@@ -1147,7 +1124,7 @@
 
             async createStep3Chart() {
                 try {
-                    console.log(`Creando forecast card del Paso 3 - Modelo: ${this.step3Model}, Días: ${this.step3Days}`);
+                    console.log(`Creando gráfico del Paso 3 - Modelo: ${this.step3Model}, Días: ${this.step3Days}`);
                     
                     // Determinar el modelo correcto para el Paso 3 (probabilidad)
                     let modelName = this.step3Model;
@@ -1185,398 +1162,198 @@
                     // Determinar si es subida o bajada
                     const isUp = upProbability > downProbability;
                     
-                    // Crear el HTML del forecast completo con gráfico y predicción
-                    const forecastHTML = `
-                        <div class="forecast-container">
-                            <div class="forecast-chart">
-                                <canvas id="step3ProbChart" width="400" height="250"></canvas>
+                    // Crear el HTML de la tarjeta de predicción
+                    const predictionHTML = `
+                        <div class="forecast-header">
+                            <h5 class="forecast-title">Predicción de precio en ${this.step3Days} días</h5>
+                            <small class="forecast-model">${modelName.replace('_', ' ').toUpperCase()}</small>
+                        </div>
+                        
+                        <div class="forecast-probabilities">
+                            <div class="prob-item ${isUp ? 'main' : 'secondary'}">
+                                <div class="prob-arrow up">↑</div>
+                                <div class="prob-text">Subida: ${upProbability.toFixed(1)}%</div>
                             </div>
-                            
-                            <div class="forecast-info">
-                                <div class="forecast-header">
-                                    <h5 class="forecast-title">Predicción de precio en ${this.step3Days} días</h5>
-                                    <small class="forecast-model">${modelName.replace('_', ' ').toUpperCase()}</small>
-                                </div>
-                                
-                                <div class="forecast-probabilities">
-                                    <div class="prob-item ${isUp ? 'main' : 'secondary'}">
-                                        <div class="prob-arrow up">↑</div>
-                                        <div class="prob-text">Subida: ${upProbability.toFixed(1)}%</div>
-                                    </div>
-                                    <div class="prob-item ${!isUp ? 'main' : 'secondary'}">
-                                        <div class="prob-arrow down">↓</div>
-                                        <div class="prob-text">Bajada: ${downProbability.toFixed(1)}%</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="forecast-date">
-                                    Fecha: ${futureDate.toLocaleDateString('es-ES', { 
-                                        day: 'numeric', 
-                                        month: 'numeric', 
-                                        year: 'numeric' 
-                                    })}
-                                </div>
-                                
-                                <div class="forecast-metrics">
-                                    <small>
-                                        Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | 
-                                        F1: ${stepData.metrics.f1_score.toFixed(3)} | 
-                                        AUC: ${stepData.metrics.roc_auc.toFixed(3)}
-                                    </small>
-                                </div>
+                            <div class="prob-item ${!isUp ? 'main' : 'secondary'}">
+                                <div class="prob-arrow down">↓</div>
+                                <div class="prob-text">Bajada: ${downProbability.toFixed(1)}%</div>
                             </div>
+                        </div>
+                        
+                        <div class="forecast-date">
+                            Fecha: ${futureDate.toLocaleDateString('es-ES', { 
+                                day: 'numeric', 
+                                month: 'numeric', 
+                                year: 'numeric' 
+                            })}
+                        </div>
+                        
+                        <div class="forecast-metrics">
+                            <small>
+                                Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | 
+                                F1: ${stepData.metrics.f1_score.toFixed(3)} | 
+                                AUC: ${stepData.metrics.roc_auc.toFixed(3)}
+                            </small>
                         </div>
                     `;
                     
-                    document.getElementById('step3Chart').innerHTML = forecastHTML;
+                    // Actualizar la tarjeta de predicción
+                    document.getElementById('step3Prediction').innerHTML = predictionHTML;
                     
-                    // Dibujar el gráfico de probabilidades
+                    // Crear gráfico de probabilidades con Plotly
                     setTimeout(() => {
-                        this.drawProbabilityChart(stepData.dates, stepData.probabilities);
+                        this.createPlotlyProbabilityChart(stepData.dates, stepData.probabilities, stepData.future_prediction, modelName);
                     }, 100);
                     
                 } catch (error) {
                     console.error('Error en createStep3Chart:', error);
-                    // Limpiar listeners si hay error
-                    this.cleanupChartListeners();
                     document.getElementById('step3Chart').innerHTML = `
                         <div class="text-center text-danger p-4">
                             <i class="fas fa-chart-area fa-3x"></i>
-                            <p class="mt-3">Error cargando forecast del Paso 3</p>
+                            <p class="mt-3">Error cargando gráfico del Paso 3</p>
                         </div>
                     `;
                 }
             }
 
-            cleanupChartListeners() {
-                // Limpiar tooltip
-                const tooltip = document.getElementById('chart-tooltip');
-                if (tooltip) {
-                    tooltip.remove();
-                }
+            createPlotlyProbabilityChart(dates, probabilities, futurePredict, modelName) {
+                // Convertir probabilidades a porcentajes
+                const probabilityPercentages = probabilities.map(p => p * 100);
                 
-                // Limpiar referencias
-                this.chartData = null;
-                this.chartZoom = null;
-                this.tooltip = null;
-            }
-
-            drawProbabilityChart(dates, probabilities) {
-                const canvas = document.getElementById('step3ProbChart');
-                if (!canvas) return;
-                
-                // Configurar interactividad
-                this.setupCanvasInteractivity(canvas, dates, probabilities);
-                
-                // Obtener solo los últimos 30 días para el zoom inicial
-                const last30Days = Math.min(30, dates.length);
-                const startIndex = Math.max(0, dates.length - last30Days);
-                
-                // Datos filtrados para los últimos 30 días
-                const filteredDates = dates.slice(startIndex);
-                const filteredProbs = probabilities.slice(startIndex);
-                
-                // Configurar el zoom inicial
-                this.chartZoom = {
-                    startIndex: startIndex,
-                    endIndex: dates.length - 1,
-                    isDragging: false,
-                    dragStart: null
-                };
-                
-                this.renderChart(canvas, dates, probabilities, this.chartZoom);
-            }
-
-            setupCanvasInteractivity(canvas, dates, probabilities) {
-                // Remover listeners anteriores
-                canvas.removeEventListener('mousedown', this.canvasMouseDown);
-                canvas.removeEventListener('mousemove', this.canvasMouseMove);
-                canvas.removeEventListener('mouseup', this.canvasMouseUp);
-                canvas.removeEventListener('wheel', this.canvasWheel);
-                canvas.removeEventListener('dblclick', this.canvasDoubleClick);
-                
-                // Bind de contexto para los métodos
-                this.canvasMouseDown = this.canvasMouseDown.bind(this);
-                this.canvasMouseMove = this.canvasMouseMove.bind(this);
-                this.canvasMouseUp = this.canvasMouseUp.bind(this);
-                this.canvasWheel = this.canvasWheel.bind(this);
-                this.canvasDoubleClick = this.canvasDoubleClick.bind(this);
-                
-                // Agregar event listeners
-                canvas.addEventListener('mousedown', this.canvasMouseDown);
-                canvas.addEventListener('mousemove', this.canvasMouseMove);
-                canvas.addEventListener('mouseup', this.canvasMouseUp);
-                canvas.addEventListener('wheel', this.canvasWheel);
-                canvas.addEventListener('dblclick', this.canvasDoubleClick);
-                
-                // Guardar referencia de datos
-                this.chartData = { dates, probabilities };
-                
-                // Crear tooltip
-                this.createTooltip();
-            }
-
-            createTooltip() {
-                // Remover tooltip anterior si existe
-                const existingTooltip = document.getElementById('chart-tooltip');
-                if (existingTooltip) {
-                    existingTooltip.remove();
-                }
-                
-                // Crear nuevo tooltip
-                const tooltip = document.createElement('div');
-                tooltip.id = 'chart-tooltip';
-                tooltip.style.cssText = `
-                    position: absolute;
-                    background: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 8px 12px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                    pointer-events: none;
-                    z-index: 1000;
-                    display: none;
-                `;
-                document.body.appendChild(tooltip);
-                this.tooltip = tooltip;
-            }
-
-            canvasMouseDown(e) {
-                const canvas = e.target;
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                
-                this.chartZoom.isDragging = true;
-                this.chartZoom.dragStart = x;
-                canvas.style.cursor = 'grabbing';
-            }
-
-            canvasMouseMove(e) {
-                const canvas = e.target;
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                if (this.chartZoom.isDragging && this.chartZoom.dragStart !== null) {
-                    // Lógica de pan/arrastre
-                    const deltaX = x - this.chartZoom.dragStart;
-                    const padding = 40;
-                    const chartWidth = canvas.width - 2 * padding;
-                    const visibleRange = this.chartZoom.endIndex - this.chartZoom.startIndex;
-                    const pixelsPerIndex = chartWidth / visibleRange;
-                    const indexDelta = Math.floor(deltaX / pixelsPerIndex);
-                    
-                    if (Math.abs(indexDelta) > 0) {
-                        const newStart = Math.max(0, this.chartZoom.startIndex - indexDelta);
-                        const newEnd = Math.min(this.chartData.dates.length - 1, this.chartZoom.endIndex - indexDelta);
-                        
-                        if (newEnd - newStart === visibleRange) {
-                            this.chartZoom.startIndex = newStart;
-                            this.chartZoom.endIndex = newEnd;
-                            this.chartZoom.dragStart = x;
-                            this.renderChart(canvas, this.chartData.dates, this.chartData.probabilities, this.chartZoom);
-                        }
+                // Crear trazas para el gráfico
+                const traces = [
+                    {
+                        x: dates,
+                        y: probabilityPercentages,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Probabilidad de Incremento',
+                        line: { 
+                            color: '#3498db', 
+                            width: 3
+                        },
+                        marker: {
+                            color: '#3498db',
+                            size: 6,
+                            line: {
+                                color: 'white',
+                                width: 2
+                            }
+                        },
+                        fill: 'tonexty',
+                        fillcolor: 'rgba(52, 152, 219, 0.1)',
+                        hovertemplate: '<b>%{x}</b><br>Probabilidad: %{y:.1f}%<extra></extra>'
                     }
-                } else {
-                    // Mostrar tooltip
-                    this.showTooltip(e, x, y);
-                }
-            }
-
-            canvasMouseUp(e) {
-                const canvas = e.target;
-                this.chartZoom.isDragging = false;
-                this.chartZoom.dragStart = null;
-                canvas.style.cursor = 'default';
-            }
-
-            canvasWheel(e) {
-                e.preventDefault();
-                const canvas = e.target;
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
+                ];
                 
-                // Zoom con rueda del mouse
-                const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
-                const padding = 40;
-                const chartWidth = canvas.width - 2 * padding;
-                const currentRange = this.chartZoom.endIndex - this.chartZoom.startIndex;
-                const newRange = Math.max(5, Math.min(this.chartData.dates.length, Math.floor(currentRange * zoomFactor)));
+                // Agregar línea de referencia del 50%
+                traces.push({
+                    x: dates,
+                    y: Array(dates.length).fill(50),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Línea de Equilibrio (50%)',
+                    line: { 
+                        color: '#e74c3c', 
+                        width: 2,
+                        dash: 'dash'
+                    },
+                    hovertemplate: '<b>Línea de Equilibrio</b><br>50%<extra></extra>'
+                });
                 
-                // Calcular punto de zoom basado en posición del mouse
-                const mousePos = (x - padding) / chartWidth;
-                const centerIndex = this.chartZoom.startIndex + mousePos * currentRange;
-                
-                const newStart = Math.max(0, Math.floor(centerIndex - newRange / 2));
-                const newEnd = Math.min(this.chartData.dates.length - 1, newStart + newRange);
-                
-                this.chartZoom.startIndex = newStart;
-                this.chartZoom.endIndex = newEnd;
-                
-                this.renderChart(canvas, this.chartData.dates, this.chartData.probabilities, this.chartZoom);
-            }
-
-            canvasDoubleClick(e) {
-                // Reset zoom a últimos 30 días
-                const last30Days = Math.min(30, this.chartData.dates.length);
-                this.chartZoom.startIndex = Math.max(0, this.chartData.dates.length - last30Days);
-                this.chartZoom.endIndex = this.chartData.dates.length - 1;
-                
-                this.renderChart(e.target, this.chartData.dates, this.chartData.probabilities, this.chartZoom);
-            }
-
-            showTooltip(e, x, y) {
-                const canvas = e.target;
-                const padding = 40;
-                const chartWidth = canvas.width - 2 * padding;
-                const chartHeight = canvas.height - 2 * padding;
-                
-                if (x >= padding && x <= canvas.width - padding && y >= padding && y <= canvas.height - padding) {
-                    const relativeX = (x - padding) / chartWidth;
-                    const visibleRange = this.chartZoom.endIndex - this.chartZoom.startIndex;
-                    const dataIndex = Math.floor(this.chartZoom.startIndex + relativeX * visibleRange);
+                // Agregar predicción futura si está disponible
+                if (futurePredict) {
+                    const lastDate = new Date(dates[dates.length - 1]);
+                    const futureDate = new Date(lastDate);
+                    futureDate.setDate(futureDate.getDate() + futurePredict.prediction_days);
                     
-                    if (dataIndex >= 0 && dataIndex < this.chartData.dates.length) {
-                        const date = new Date(this.chartData.dates[dataIndex]).toLocaleDateString('es-ES');
-                        const prob = (this.chartData.probabilities[dataIndex] * 100).toFixed(1);
-                        
-                        this.tooltip.innerHTML = `
-                            <strong>Fecha:</strong> ${date}<br>
-                            <strong>Probabilidad:</strong> ${prob}%
-                        `;
-                        
-                        this.tooltip.style.display = 'block';
-                        this.tooltip.style.left = (e.clientX + 10) + 'px';
-                        this.tooltip.style.top = (e.clientY - 10) + 'px';
-                        return;
-                    }
-                }
-                
-                this.tooltip.style.display = 'none';
-            }
-
-            renderChart(canvas, dates, probabilities, zoom) {
-                const ctx = canvas.getContext('2d');
-                const width = canvas.width;
-                const height = canvas.height;
-                
-                // Limpiar canvas
-                ctx.clearRect(0, 0, width, height);
-                
-                // Configuración del gráfico
-                const padding = 40;
-                const chartWidth = width - 2 * padding;
-                const chartHeight = height - 2 * padding;
-                
-                // Datos filtrados según el zoom
-                const visibleDates = dates.slice(zoom.startIndex, zoom.endIndex + 1);
-                const visibleProbs = probabilities.slice(zoom.startIndex, zoom.endIndex + 1);
-                
-                // Dibujar ejes
-                ctx.strokeStyle = '#ddd';
-                ctx.lineWidth = 1;
-                
-                // Eje Y (probabilidad)
-                ctx.beginPath();
-                ctx.moveTo(padding, padding);
-                ctx.lineTo(padding, height - padding);
-                ctx.stroke();
-                
-                // Eje X (tiempo)
-                ctx.beginPath();
-                ctx.moveTo(padding, height - padding);
-                ctx.lineTo(width - padding, height - padding);
-                ctx.stroke();
-                
-                // Líneas de grid horizontales
-                for (let i = 0; i <= 10; i++) {
-                    const y = padding + (i / 10) * chartHeight;
-                    ctx.beginPath();
-                    ctx.moveTo(padding, y);
-                    ctx.lineTo(width - padding, y);
-                    ctx.strokeStyle = i === 5 ? '#ccc' : '#f0f0f0';
-                    ctx.stroke();
-                }
-                
-                // Etiquetas del eje Y
-                ctx.fillStyle = '#666';
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'right';
-                for (let i = 0; i <= 10; i++) {
-                    const y = height - padding - (i / 10) * chartHeight;
-                    ctx.fillText(`${i * 10}%`, padding - 5, y + 4);
-                }
-                
-                // Etiquetas del eje X (fechas)
-                ctx.textAlign = 'center';
-                const maxLabels = 5;
-                const labelStep = Math.max(1, Math.floor(visibleDates.length / maxLabels));
-                for (let i = 0; i < visibleDates.length; i += labelStep) {
-                    const x = padding + (i / (visibleDates.length - 1)) * chartWidth;
-                    const date = new Date(visibleDates[i]).toLocaleDateString('es-ES', { 
-                        day: 'numeric', 
-                        month: 'short' 
+                    const futureProbability = futurePredict.probability * 100;
+                    
+                    traces.push({
+                        x: [futureDate.toISOString().split('T')[0]],
+                        y: [futureProbability],
+                        type: 'scatter',
+                        mode: 'markers+text',
+                        name: `Predicción Futura (${futurePredict.prediction_days} días)`,
+                        text: [futurePredict.prediction ? '↑' : '↓'],
+                        textfont: { 
+                            size: 20, 
+                            color: futurePredict.prediction ? '#27ae60' : '#e74c3c'
+                        },
+                        textposition: 'top center',
+                        marker: {
+                            color: futurePredict.prediction ? '#27ae60' : '#e74c3c',
+                            size: 14,
+                            symbol: 'star',
+                            line: {
+                                color: 'white',
+                                width: 2
+                            }
+                        },
+                        hovertemplate: '<b>%{x}</b><br>Predicción: %{text}<br>Probabilidad: %{y:.1f}%<extra></extra>'
                     });
-                    ctx.fillText(date, x, height - padding + 20);
                 }
                 
-                // Dibujar línea de probabilidad
-                if (visibleProbs.length > 1) {
-                    ctx.beginPath();
-                    ctx.strokeStyle = '#3498db';
-                    ctx.lineWidth = 2;
-                    
-                    for (let i = 0; i < visibleProbs.length; i++) {
-                        const x = padding + (i / (visibleProbs.length - 1)) * chartWidth;
-                        const y = height - padding - (visibleProbs[i] * chartHeight);
-                        
-                        if (i === 0) {
-                            ctx.moveTo(x, y);
-                        } else {
-                            ctx.lineTo(x, y);
-                        }
-                    }
-                    ctx.stroke();
-                    
-                    // Dibujar puntos
-                    ctx.fillStyle = '#3498db';
-                    for (let i = 0; i < visibleProbs.length; i++) {
-                        const x = padding + (i / (visibleProbs.length - 1)) * chartWidth;
-                        const y = height - padding - (visibleProbs[i] * chartHeight);
-                        
-                        ctx.beginPath();
-                        ctx.arc(x, y, 3, 0, 2 * Math.PI);
-                        ctx.fill();
-                    }
-                }
+                // Configurar zoom inicial a los últimos 30 días
+                const dateRange = dates.map(d => new Date(d));
+                const lastDate = new Date(Math.max(...dateRange));
+                const thirtyDaysAgo = new Date(lastDate - 30 * 24 * 60 * 60 * 1000);
                 
-                // Línea de 50%
-                ctx.beginPath();
-                ctx.strokeStyle = '#e74c3c';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]);
-                const middleY = height - padding - (0.5 * chartHeight);
-                ctx.moveTo(padding, middleY);
-                ctx.lineTo(width - padding, middleY);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                // Etiqueta de 50%
-                ctx.fillStyle = '#e74c3c';
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'left';
-                ctx.fillText('50%', width - padding + 5, middleY + 4);
-                
-                // Título del gráfico
-                ctx.fillStyle = '#333';
-                ctx.font = '14px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('Evolución de Probabilidad de Incremento ', width / 2, 20);
-                
-                // Instrucciones
-                ctx.fillStyle = '#999';
-                ctx.font = '10px Arial';
-                ctx.fillText('Rueda: Zoom | Arrastrar: Pan | Doble clic: Reset', width / 2, height - 5);
+                const layout = {
+                    title: `Evolución de Probabilidad de Incremento - ${modelName.replace('_', ' ').toUpperCase()}`,
+                    xaxis: { 
+                        title: 'Fecha',
+                        type: 'date',
+                        // Zoom inicial a los últimos 30 días
+                        range: [
+                            thirtyDaysAgo.toISOString().split('T')[0],
+                            lastDate.toISOString().split('T')[0]
+                        ]
+                    },
+                    yaxis: {
+                        title: 'Probabilidad de Incremento (%)',
+                        range: [0, 100],
+                        ticksuffix: '%'
+                    },
+                    hovermode: 'x unified',
+                    legend: {
+                        orientation: 'h',
+                        y: -0.15,
+                        x: 0.1
+                    },
+                    margin: { t: 50, b: 80, l: 60, r: 60 },
+                    shapes: [{
+                        type: 'rect',
+                        xref: 'paper',
+                        yref: 'y',
+                        x0: 0,
+                        y0: 50,
+                        x1: 1,
+                        y1: 100,
+                        fillcolor: 'rgba(39, 174, 96, 0.1)',
+                        line: { width: 0 },
+                        layer: 'below'
+                    }, {
+                        type: 'rect',
+                        xref: 'paper',
+                        yref: 'y',
+                        x0: 0,
+                        y0: 0,
+                        x1: 1,
+                        y1: 50,
+                        fillcolor: 'rgba(231, 76, 60, 0.1)',
+                        line: { width: 0 },
+                        layer: 'below'
+                    }]
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+                };
+
+                Plotly.newPlot('step3Chart', traces, layout, config);
             }
 
             async createVolumeChart() {
