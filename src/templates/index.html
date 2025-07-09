@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de Criptomonedas - Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        .controls {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .model-selector {
+            margin-bottom: 1rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-active {
+            background-color: #28a745;
+        }
+        
+        .status-inactive {
+            background-color: #dc3545;
+        }
+        
+        .step-controls {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Estilos para la tarjeta de pronóstico */
+        .forecast-container {
+            display: flex;
+            gap: 30px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            align-items: flex-start;
+        }
+        
+        .forecast-chart {
+            flex: 1;
+            min-width: 400px;
+        }
+        
+        .forecast-info {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .forecast-header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        
+        .forecast-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .forecast-model {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .forecast-probabilities {
+            margin-bottom: 20px;
+        }
+        
+        .prob-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+        }
+        
+        .prob-item.main {
+            background: transparent;
+            border: none;
+        }
+        
+        .prob-item.secondary {
+            background: transparent;
+            border: none;
+        }
+        
+        .prob-arrow {
+            display: inline-block;
+            font-size: 2rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .prob-arrow.up {
+            color: #52c41a;
+        }
+        
+        .prob-arrow.down {
+            color: #ff4d4f;
+        }
+        
+        .prob-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .forecast-date {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .forecast-metrics {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .forecast-metrics small {
+            color: #6c757d;
+        }
+        
+        /* Estilos para la tarjeta de predicción del Step 2 */
+        .prediction-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            height: 100%;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .prediction-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        
+        .prediction-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .prediction-subtitle {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .prediction-main {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .prediction-arrow {
+            display: inline-block;
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .prediction-arrow.up {
+            color: #52c41a;
+        }
+        
+        .prediction-arrow.down {
+            color: #ff4d4f;
+        }
+        
+        .prediction-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .prediction-text.up {
+            color: #52c41a;
+        }
+        
+        .prediction-text.down {
+            color: #ff4d4f;
+        }
+        
+        .prediction-probability {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .prediction-date {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+        
+        .prediction-metrics {
+            background: #e9ecef;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .forecast-chart {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .forecast-chart canvas {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .forecast-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-left: 20px;
+            border-left: 2px solid #e9ecef;
+        }
+        
+        .forecast-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .forecast-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .forecast-model {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .forecast-probabilities {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .prob-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .prob-item.main {
+            transform: scale(1.1);
+        }
+        
+        .prob-item.secondary {
+            opacity: 0.6;
+            transform: scale(0.9);
+        }
+        
+        .prob-arrow {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .prob-item.main .prob-arrow {
+            font-size: 3.5rem;
+        }
+        
+        .prob-item.secondary .prob-arrow {
+            font-size: 2rem;
+        }
+        
+        .prob-arrow.up {
+            color: #27ae60;
+        }
+        
+        .prob-arrow.down {
+            color: #e74c3c;
+        }
+        
+        .prob-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+        
+        .prob-item.main .prob-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .prob-item.secondary .prob-text {
+            font-size: 1rem;
+        }
+        
+        .forecast-date {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #495057;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .forecast-metrics {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .forecast-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .forecast-info {
+                padding-left: 0;
+                border-left: none;
+                border-top: 2px solid #e9ecef;
+                padding-top: 20px;
+            }
+            
+            .forecast-chart canvas {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        /* Animaciones */
+        .forecast-container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Estilos obsoletos de la tarjeta anterior */
+        .forecast-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 2px solid #e0e0e0;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .forecast-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 0 20px;
+        }
+        
+        .forecast-arrow {
+            font-size: 4rem;
+            padding: 20px;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+        
+        .forecast-arrow.up {
+            background: linear-gradient(135deg, #52c41a, #389e0d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(82, 196, 26, 0.4);
+        }
+        
+        .forecast-arrow.down {
+            background: linear-gradient(135deg, #ff4d4f, #cf1322);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 77, 79, 0.4);
+        }
+        
+        .forecast-main {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .forecast-secondary {
+            flex: 1;
+            text-align: right;
+        }
+        
+        .forecast-direction {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .forecast-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .forecast-direction.up,
+        .forecast-percentage.up {
+            color: #52c41a;
+        }
+        
+        .forecast-direction.down,
+        .forecast-percentage.down {
+            color: #ff4d4f;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-chart-line me-3"></i>Predicción de Centrifuge</h1>
+                    <p class="lead">Dashboard de análisis y predicción de precios usando Machine Learning</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="mt-3">
+                        <span class="status-indicator status-active"></span>
+                        <span>Modelos Activos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+
+        <!-- Paso 1: Regresión Directa del Precio -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="chart-container">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-8">
+                            <h3><i class="fas fa-chart-line me-2"></i>Paso 1: Regresión Directa del Precio</h3>
+                            <p class="text-muted">Predicción del valor numérico del precio de cierre</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="step1ModelSelect" class="form-label">Modelo:</label>
+                                    <select id="step1ModelSelect" class="form-select">
+                                        <option value="random_forest">Random Forest</option>
+                                        <option value="linear_regression">Regresión Lineal</option>
+                                        <option value="lstm">LSTM Neural Network</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="step1DaysSelect" class="form-label">Días:</label>
+                                    <select id="step1DaysSelect" class="form-select">
+                                        <option value="1">1 día</option>
+                                        <option value="7" selected>7 días</option>
+                                        <option value="15">15 días</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="step1Chart"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 2: Clasificación Binaria -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="chart-container">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-8">
+                            <h3><i class="fas fa-chart-bar me-2"></i>Paso 2: Clasificación Binaria (Sube/Baja)</h3>
+                            <p class="text-muted">Predicción de la dirección del movimiento del precio</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="step2ModelSelect" class="form-label">Modelo:</label>
+                                    <select id="step2ModelSelect" class="form-select">
+                                        <option value="random_forest">Random Forest</option>
+                                        <option value="logistic_regression">Regresión Logística</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="step2DaysSelect" class="form-label">Días:</label>
+                                    <select id="step2DaysSelect" class="form-select">
+                                        <option value="1">1 día</option>
+                                        <option value="7" selected>7 días</option>
+                                        <option value="15">15 días</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div id="step2Chart"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="step2Prediction" class="prediction-card">
+                                <div class="text-center text-muted p-3">
+                                    <i class="fas fa-chart-bar fa-2x"></i>
+                                    <p class="mt-2">Selecciona días para ver predicción</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paso 3: Probabilidad de Incremento -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="chart-container">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-8">
+                            <h3><i class="fas fa-chart-area me-2"></i>Paso 3: Probabilidad de Incremento Significativo</h3>
+                            <p class="text-muted">Estimación de probabilidad de incremento</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="step3ModelSelect" class="form-label">Modelo:</label>
+                                    <select id="step3ModelSelect" class="form-select">
+                                        <option value="random_forest">Random Forest</option>
+                                        <option value="logistic_regression">Regresión Logística</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="step3DaysSelect" class="form-label">Días:</label>
+                                    <select id="step3DaysSelect" class="form-select">
+                                        <option value="1">1 día</option>
+                                        <option value="7" >7 días</option>
+                                        <option value="15" selected>15 días</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div id="step3Chart"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="step3Prediction" class="prediction-card">
+                                <div class="text-center text-muted p-3">
+                                    <i class="fas fa-chart-area fa-2x"></i>
+                                    <p class="mt-2">Selecciona días para ver predicción</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Adicionales -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h4><i class="fas fa-chart-bar me-2"></i>Volumen de Transacciones</h4>
+                    <div id="volumeChart"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-container">
+                    <h4><i class="fas fa-chart-line me-2"></i>Indicadores Técnicos</h4>
+                    <div id="indicatorsChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        class CryptoDashboard {
+            constructor() {
+                this.data = null;
+                this.step1Model = 'random_forest';
+                this.step1Days = 7;
+                this.step2Model = 'random_forest';
+                this.step2Days = 7;
+                this.step3Model = 'random_forest';
+                this.step3Days = 15;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadData();
+            }
+
+            setupEventListeners() {
+                // Event listeners para Paso 1
+                document.getElementById('step1ModelSelect').addEventListener('change', (e) => {
+                    this.step1Model = e.target.value;
+                    this.updateStep1Chart();
+                });
+
+                document.getElementById('step1DaysSelect').addEventListener('change', (e) => {
+                    this.step1Days = parseInt(e.target.value);
+                    this.updateStep1Chart();
+                });
+
+                // Event listeners para Paso 2
+                document.getElementById('step2ModelSelect').addEventListener('change', (e) => {
+                    this.step2Model = e.target.value;
+                    this.updateStep2Chart();
+                });
+
+                document.getElementById('step2DaysSelect').addEventListener('change', (e) => {
+                    this.step2Days = parseInt(e.target.value);
+                    this.updateStep2Chart();
+                });
+
+                // Event listeners para Paso 3
+                document.getElementById('step3ModelSelect').addEventListener('change', (e) => {
+                    this.step3Model = e.target.value;
+                    this.updateStep3Chart();
+                });
+
+                document.getElementById('step3DaysSelect').addEventListener('change', (e) => {
+                    this.step3Days = parseInt(e.target.value);
+                    this.updateStep3Chart();
+                });
+            }
+
+            updateStep1Chart() {
+                console.log(`Actualizando gráfico del Paso 1 - Modelo: ${this.step1Model}, Días: ${this.step1Days}`);
+                this.createStep1Chart();
+            }
+
+            updateStep2Chart() {
+                console.log(`Actualizando gráfico del Paso 2 - Modelo: ${this.step2Model}, Días: ${this.step2Days}`);
+                this.createStep2Chart();
+            }
+
+            updateStep3Chart() {
+                console.log(`Actualizando gráfico del Paso 3 - Modelo: ${this.step3Model}, Días: ${this.step3Days}`);
+                this.createStep3Chart();
+            }
+
+            async loadData() {
+                try {
+                    console.log('Cargando datos iniciales...');
+                    
+                    const response = await fetch('/api/historical_data');
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    this.data = data;
+                    this.updateCharts();
+
+                } catch (error) {
+                    console.error('Error cargando datos:', error);
+                    this.showError(error.message);
+                }
+            }
+
+            showError(message) {
+                const charts = ['step1Chart', 'step2Chart', 'step3Chart', 'volumeChart', 'indicatorsChart'];
+                charts.forEach(chartId => {
+                    const element = document.getElementById(chartId);
+                    if (element) {
+                        element.innerHTML = `
+                            <div class="text-center text-danger p-4">
+                                <i class="fas fa-exclamation-triangle fa-3x"></i>
+                                <p class="mt-3"><strong>Error:</strong> ${message}</p>
+                                <button class="btn btn-outline-primary mt-2" onclick="location.reload()">
+                                    <i class="fas fa-redo me-2"></i>Reintentar
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            updateCharts() {
+                console.log('Actualizando gráficos de los 3 pasos...');
+                Promise.all([
+                    this.createStep1Chart(),
+                    this.createStep2Chart(),
+                    this.createStep3Chart(),
+                    this.createVolumeChart(),
+                    this.createIndicatorsChart()
+                ]).then(() => {
+                    console.log('Todos los gráficos actualizados');
+                }).catch(error => {
+                    console.error('Error actualizando gráficos:', error);
+                });
+            }
+
+            async createStep1Chart() {
+                try {
+                    console.log(`Creando gráfico del Paso 1 - Modelo: ${this.step1Model}, Días: ${this.step1Days}`);
+                    
+                    // Determinar el modelo correcto para el Paso 1 (regresión)
+                    let modelName = this.step1Model;
+                    let displayName = modelName.replace('_', ' ');
+                    
+                    if (this.step1Model === 'logistic_regression') {
+                        modelName = 'linear_regression'; // Usar regresión lineal si se selecciona logística
+                        displayName = 'Linear Regression';
+                    } else if (this.step1Model === 'lstm') {
+                        displayName = 'LSTM Neural Network';
+                    }
+                    
+                    const response = await fetch(`/api/step1_data/${modelName}/${this.step1Days}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const stepData = await response.json();
+                    
+                    const traces = [
+                        {
+                            x: stepData.dates,
+                            y: stepData.actual,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Precio Real',
+                            line: { color: '#2ca02c', width: 2 }
+                        },
+                        {
+                            x: stepData.dates,
+                            y: stepData.predictions,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `Predicción (${displayName})`,
+                            line: { color: '#ff7f0e', width: 2, dash: 'dash' }
+                        }
+                    ];
+
+                    // Agregar predicciones futuras si están disponibles
+                    if (stepData.future_dates && stepData.future_predictions) {
+                        traces.push({
+                            x: stepData.future_dates,
+                            y: stepData.future_predictions,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: `Predicción Futura (${this.step1Days} días)`,
+                            line: { color: '#d62728', width: 2, dash: 'dot' }
+                        });
+                    }
+
+                    const layout = {
+                        title: `Paso 1: Regresión - ${displayName.toUpperCase()} (${this.step1Days} días)`,
+                        xaxis: { 
+                            title: 'Fecha',
+                            type: 'date'
+                        },
+                        yaxis: { 
+                            title: 'Precio de Cierre',
+                            tickformat: '.2f'
+                        },
+                        hovermode: 'x unified',
+                        legend: {
+                            orientation: 'h',
+                            y: -0.2
+                        },
+                        margin: { t: 50, b: 100, l: 60, r: 30 },
+                        annotations: [{
+                            text: `RMSE: ${stepData.metrics.rmse.toFixed(2)} | MAE: ${stepData.metrics.mae.toFixed(2)} | R²: ${stepData.metrics.r2.toFixed(3)}`,
+                            xref: 'paper', yref: 'paper',
+                            x: 0, y: 1.02, xanchor: 'left', yanchor: 'bottom',
+                            showarrow: false,
+                            font: { size: 12, color: '#666' }
+                        }]
+                    };
+
+                    const config = {
+                        responsive: true,
+                        displayModeBar: true,
+                        modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+                    };
+
+                    Plotly.newPlot('step1Chart', traces, layout, config);
+                    
+                } catch (error) {
+                    console.error('Error en createStep1Chart:', error);
+                    document.getElementById('step1Chart').innerHTML = `
+                        <div class="text-center text-danger p-4">
+                            <i class="fas fa-chart-line fa-3x"></i>
+                            <p class="mt-3">Error cargando gráfico del Paso 1</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async createStep2Chart() {
+                try {
+                    console.log(`Creando gráfico del Paso 2 - Modelo: ${this.step2Model}, Días: ${this.step2Days}`);
+                    
+                    // Determinar el modelo correcto para el Paso 2 (clasificación)
+                    let modelName = this.step2Model;
+                    if (this.step2Model === 'linear_regression') {
+                        modelName = 'logistic_regression'; // Usar regresión logística si se selecciona lineal
+                    }
+                    
+                    const response = await fetch(`/api/step2_data/${modelName}/${this.step2Days}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const stepData = await response.json();
+                    
+                    const traces = [
+                        // Línea de precios reales
+                        {
+                            x: stepData.dates,
+                            y: stepData.actual_prices,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'Precio Real',
+                            line: { color: '#2ca02c', width: 2 },
+                            hovertemplate: '<b>%{x}</b><br>Precio: $%{y:.2f}<extra></extra>'
+                        }
+                    ];
+                    
+                    // Agregar barras solo para la predicción del modelo
+                    const barHeight = 0.03; // Altura de las barras más notoria (doble del anterior)
+                    
+                    // Calcular barras para predicción del modelo
+                    const modelPredictionX = [];
+                    const modelPredictionY = [];
+                    const modelPredictionColors = [];
+                    const modelPredictionHoverTexts = [];
+                    
+                    stepData.predictions.forEach((val, index) => {
+                        const basePrice = stepData.actual_prices[index];
+                        const barHeightValue = basePrice * barHeight;
+                        
+                        modelPredictionX.push(stepData.dates[index]);
+                        modelPredictionY.push(val ? basePrice + barHeightValue : basePrice - barHeightValue);
+                        modelPredictionColors.push(val ? '#28a745' : '#dc3545');
+                        modelPredictionHoverTexts.push(val ? 'Subida ↑' : 'Bajada ↓');
+                    });
+                    
+                    traces.push({
+                        x: modelPredictionX,
+                        y: modelPredictionY,
+                        type: 'bar',
+                        name: 'Predicción del Modelo',
+                        marker: {
+                            color: modelPredictionColors,
+                            opacity: 0.8,
+                            line: {
+                                color: modelPredictionColors,
+                                width: 2
+                            }
+                        },
+                        width: 0.6, // Ancho de las barras más grueso
+                        hovertemplate: '<b>%{x}</b><br>Predicción: %{text}<br>Probabilidad: %{customdata:.1%}<extra></extra>',
+                        text: modelPredictionHoverTexts,
+                        customdata: stepData.probabilities
+                    });
+                    
+                    // Agregar predicción futura si está disponible
+                    if (stepData.future_prediction) {
+                        // Calcular la fecha futura basada en la última fecha de los datos
+                        const lastDate = new Date(stepData.dates[stepData.dates.length - 1]);
+                        const futureDate = new Date(lastDate);
+                        futureDate.setDate(futureDate.getDate() + stepData.future_prediction.prediction_days);
+                        
+                        const lastPrice = stepData.actual_prices[stepData.actual_prices.length - 1];
+                        
+                        traces.push({
+                            x: [futureDate.toISOString().split('T')[0]],
+                            y: [lastPrice],
+                            type: 'scatter',
+                            mode: 'markers+text',
+                            name: `Predicción Futura (${(stepData.future_prediction.probability * 100).toFixed(1)}%)`,
+                            text: [stepData.future_prediction.prediction ? '↑' : '↓'],
+                            textfont: { 
+                                size: 20, 
+                                color: stepData.future_prediction.prediction ? '#28a745' : '#dc3545' 
+                            },
+                            textposition: 'middle center',
+                            marker: {
+                                color: stepData.future_prediction.prediction ? '#28a745' : '#dc3545',
+                                size: 14,
+                                symbol: 'star'
+                            },
+                            hovertemplate: '<b>%{x}</b><br>Predicción: %{text}<br>Probabilidad: %{customdata:.1%}<extra></extra>',
+                            customdata: [stepData.future_prediction.probability]
+                        });
+                    }
+
+                    // Configurar zoom inicial a los últimos 30 días
+                    const dateRange = stepData.dates.map(d => new Date(d));
+                    const lastDate = new Date(Math.max(...dateRange));
+                    const thirtyDaysAgo = new Date(lastDate - 30 * 24 * 60 * 60 * 1000);
+
+                    const layout = {
+                        title: `Paso 2: Clasificación - ${modelName.replace('_', ' ').toUpperCase()} (${this.step2Days} días)`,
+                        xaxis: { 
+                            title: 'Fecha',
+                            type: 'date',
+                            // Zoom inicial a los últimos 30 días
+                            range: [
+                                thirtyDaysAgo.toISOString().split('T')[0],
+                                lastDate.toISOString().split('T')[0]
+                            ]
+                        },
+                        yaxis: {
+                            title: 'Precio ($)',
+                            tickformat: '.2f',
+                            autorange: true
+                        },
+                        hovermode: 'x unified',
+                        legend: {
+                            orientation: 'h',
+                            y: -0.15,
+                            x: 0.1
+                        },
+                        margin: { t: 50, b: 100, l: 60, r: 60 },
+                        annotations: [{
+                            text: `Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | F1: ${stepData.metrics.f1_score.toFixed(3)} | AUC: ${stepData.metrics.roc_auc.toFixed(3)}${stepData.future_prediction ? ` | Predicción ${stepData.future_prediction.prediction_days}d: ${stepData.future_prediction.prediction ? 'Sube' : 'Baja'} (${(stepData.future_prediction.probability * 100).toFixed(1)}%)` : ''}`,
+                            xref: 'paper', yref: 'paper',
+                            x: 0, y: 1.02, xanchor: 'left', yanchor: 'bottom',
+                            showarrow: false,
+                            font: { size: 12, color: '#666' }
+                        }]
+                    };
+
+                    const config = {
+                        responsive: true,
+                        displayModeBar: true,
+                        modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+                    };
+
+                    Plotly.newPlot('step2Chart', traces, layout, config);
+                    
+                    // Crear tarjeta de predicción
+                    this.createStep2PredictionCard(stepData, modelName);
+                    
+                } catch (error) {
+                    console.error('Error en createStep2Chart:', error);
+                    document.getElementById('step2Chart').innerHTML = `
+                        <div class="text-center text-danger p-4">
+                            <i class="fas fa-chart-bar fa-3x"></i>
+                            <p class="mt-3">Error cargando gráfico del Paso 2</p>
+                        </div>
+                    `;
+                }
+            }
+
+            createStep2PredictionCard(stepData, modelName) {
+                const predictionContainer = document.getElementById('step2Prediction');
+                
+                if (stepData.future_prediction) {
+                    const prediction = stepData.future_prediction.prediction;
+                    const probability = stepData.future_prediction.probability;
+                    const days = stepData.future_prediction.prediction_days;
+                    
+                    // Calcular la fecha futura
+                    const lastDate = new Date(stepData.dates[stepData.dates.length - 1]);
+                    const futureDate = new Date(lastDate);
+                    futureDate.setDate(futureDate.getDate() + days);
+                    
+                    const predictionHTML = `
+                        <div class="prediction-header">
+                            <div class="prediction-title">Predicción de Movimiento</div>
+                            <div class="prediction-subtitle">${modelName.replace('_', ' ').toUpperCase()}</div>
+                        </div>
+                        
+                        <div class="prediction-main">
+                            <div class="prediction-arrow ${prediction ? 'up' : 'down'}">
+                                ${prediction ? '↑' : '↓'}
+                            </div>
+                            <div class="prediction-text ${prediction ? 'up' : 'down'}">
+                                ${prediction ? 'SUBE' : 'BAJA'}
+                            </div>
+                        </div>
+                        
+                        <div class="prediction-date">
+                            Fecha: ${futureDate.toLocaleDateString('es-ES', { 
+                                day: 'numeric', 
+                                month: 'long', 
+                                year: 'numeric' 
+                            })}
+                        </div>
+                        
+                        <div class="prediction-metrics">
+                            Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | 
+                            F1: ${stepData.metrics.f1_score.toFixed(3)} | 
+                            AUC: ${stepData.metrics.roc_auc.toFixed(3)}
+                        </div>
+                    `;
+                    
+                    predictionContainer.innerHTML = predictionHTML;
+                } else {
+                    predictionContainer.innerHTML = `
+                        <div class="prediction-header">
+                            <div class="prediction-title">Predicción de Movimiento</div>
+                            <div class="prediction-subtitle">${modelName.replace('_', ' ').toUpperCase()}</div>
+                        </div>
+                        
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-chart-bar fa-2x"></i>
+                            <p class="mt-2">Selecciona días para ver predicción futura</p>
+                        </div>
+                        
+                        <div class="prediction-metrics">
+                            Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | 
+                            F1: ${stepData.metrics.f1_score.toFixed(3)} | 
+                            AUC: ${stepData.metrics.roc_auc.toFixed(3)}
+                        </div>
+                    `;
+                }
+            }
+
+            async createStep3Chart() {
+                try {
+                    console.log(`Creando gráfico del Paso 3 - Modelo: ${this.step3Model}, Días: ${this.step3Days}`);
+                    
+                    // Determinar el modelo correcto para el Paso 3 (probabilidad)
+                    let modelName = this.step3Model;
+                    if (this.step3Model === 'linear_regression') {
+                        modelName = 'logistic_regression'; // Usar regresión logística si se selecciona lineal
+                    }
+                    
+                    const response = await fetch(`/api/step3_data/${modelName}/${this.step3Days}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const stepData = await response.json();
+                    
+                    // Calcular la fecha futura
+                    const lastDate = new Date(stepData.dates[stepData.dates.length - 1]);
+                    const futureDate = new Date(lastDate);
+                    futureDate.setDate(futureDate.getDate() + this.step3Days);
+                    
+                    // Obtener las probabilidades para el forecast
+                    let upProbability = 0;
+                    let downProbability = 0;
+                    
+                    if (stepData.future_prediction) {
+                        upProbability = stepData.future_prediction.probability * 100;
+                        downProbability = (1 - stepData.future_prediction.probability) * 100;
+                    } else {
+                        // Usar la última probabilidad disponible como fallback
+                        const lastProb = stepData.probabilities[stepData.probabilities.length - 1];
+                        upProbability = lastProb * 100;
+                        downProbability = (1 - lastProb) * 100;
+                    }
+                    
+                    // Determinar si es subida o bajada
+                    const isUp = upProbability > downProbability;
+                    
+                    // Crear el HTML de la tarjeta de predicción
+                    const predictionHTML = `
+                        <div class="forecast-header">
+                            <h5 class="forecast-title">Predicción de precio en ${this.step3Days} días</h5>
+                            <small class="forecast-model">${modelName.replace('_', ' ').toUpperCase()}</small>
+                        </div>
+                        
+                        <div class="forecast-probabilities">
+                            <div class="prob-item ${isUp ? 'main' : 'secondary'}">
+                                <div class="prob-arrow up">↑</div>
+                                <div class="prob-text">Subida: ${upProbability.toFixed(1)}%</div>
+                            </div>
+                            <div class="prob-item ${!isUp ? 'main' : 'secondary'}">
+                                <div class="prob-arrow down">↓</div>
+                                <div class="prob-text">Bajada: ${downProbability.toFixed(1)}%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="forecast-date">
+                            Fecha: ${futureDate.toLocaleDateString('es-ES', { 
+                                day: 'numeric', 
+                                month: 'numeric', 
+                                year: 'numeric' 
+                            })}
+                        </div>
+                        
+                        <div class="forecast-metrics">
+                            <small>
+                                Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | 
+                                F1: ${stepData.metrics.f1_score.toFixed(3)} | 
+                                AUC: ${stepData.metrics.roc_auc.toFixed(3)}
+                            </small>
+                        </div>
+                    `;
+                    
+                    // Actualizar la tarjeta de predicción
+                    document.getElementById('step3Prediction').innerHTML = predictionHTML;
+                    
+                    // Crear gráfico de probabilidades con Plotly
+                    setTimeout(() => {
+                        this.createPlotlyProbabilityChart(stepData.dates, stepData.probabilities, stepData.future_prediction, modelName);
+                    }, 100);
+                    
+                } catch (error) {
+                    console.error('Error en createStep3Chart:', error);
+                    document.getElementById('step3Chart').innerHTML = `
+                        <div class="text-center text-danger p-4">
+                            <i class="fas fa-chart-area fa-3x"></i>
+                            <p class="mt-3">Error cargando gráfico del Paso 3</p>
+                        </div>
+                    `;
+                }
+            }
+
+            createPlotlyProbabilityChart(dates, probabilities, futurePredict, modelName) {
+                // Convertir probabilidades a porcentajes
+                const probabilityPercentages = probabilities.map(p => p * 100);
+                
+                // Crear trazas para el gráfico
+                const traces = [
+                    {
+                        x: dates,
+                        y: probabilityPercentages,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: 'Probabilidad de Incremento',
+                        line: { 
+                            color: '#3498db', 
+                            width: 3
+                        },
+                        marker: {
+                            color: '#3498db',
+                            size: 6,
+                            line: {
+                                color: 'white',
+                                width: 2
+                            }
+                        },
+                        fill: 'tonexty',
+                        fillcolor: 'rgba(52, 152, 219, 0.1)',
+                        hovertemplate: '<b>%{x}</b><br>Probabilidad: %{y:.1f}%<extra></extra>'
+                    }
+                ];
+                
+                // Agregar línea de referencia del 50%
+                traces.push({
+                    x: dates,
+                    y: Array(dates.length).fill(50),
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: 'Línea de Equilibrio (50%)',
+                    line: { 
+                        color: '#e74c3c', 
+                        width: 2,
+                        dash: 'dash'
+                    },
+                    hovertemplate: '<b>Línea de Equilibrio</b><br>50%<extra></extra>'
+                });
+                
+                // Agregar predicción futura si está disponible
+                if (futurePredict) {
+                    const lastDate = new Date(dates[dates.length - 1]);
+                    const futureDate = new Date(lastDate);
+                    futureDate.setDate(futureDate.getDate() + futurePredict.prediction_days);
+                    
+                    const futureProbability = futurePredict.probability * 100;
+                    
+                    traces.push({
+                        x: [futureDate.toISOString().split('T')[0]],
+                        y: [futureProbability],
+                        type: 'scatter',
+                        mode: 'markers+text',
+                        name: `Predicción Futura (${futurePredict.prediction_days} días)`,
+                        text: [futurePredict.prediction ? '↑' : '↓'],
+                        textfont: { 
+                            size: 20, 
+                            color: futurePredict.prediction ? '#27ae60' : '#e74c3c'
+                        },
+                        textposition: 'top center',
+                        marker: {
+                            color: futurePredict.prediction ? '#27ae60' : '#e74c3c',
+                            size: 14,
+                            symbol: 'star',
+                            line: {
+                                color: 'white',
+                                width: 2
+                            }
+                        },
+                        hovertemplate: '<b>%{x}</b><br>Predicción: %{text}<br>Probabilidad: %{y:.1f}%<extra></extra>'
+                    });
+                }
+                
+                // Configurar zoom inicial a los últimos 30 días
+                const dateRange = dates.map(d => new Date(d));
+                const lastDate = new Date(Math.max(...dateRange));
+                const thirtyDaysAgo = new Date(lastDate - 30 * 24 * 60 * 60 * 1000);
+                
+                const layout = {
+                    title: `Evolución de Probabilidad de Incremento - ${modelName.replace('_', ' ').toUpperCase()}`,
+                    xaxis: { 
+                        title: 'Fecha',
+                        type: 'date',
+                        // Zoom inicial a los últimos 30 días
+                        range: [
+                            thirtyDaysAgo.toISOString().split('T')[0],
+                            lastDate.toISOString().split('T')[0]
+                        ]
+                    },
+                    yaxis: {
+                        title: 'Probabilidad de Incremento (%)',
+                        range: [0, 100],
+                        ticksuffix: '%'
+                    },
+                    hovermode: 'x unified',
+                    legend: {
+                        orientation: 'h',
+                        y: -0.15,
+                        x: 0.1
+                    },
+                    margin: { t: 50, b: 80, l: 60, r: 60 },
+                    shapes: [{
+                        type: 'rect',
+                        xref: 'paper',
+                        yref: 'y',
+                        x0: 0,
+                        y0: 50,
+                        x1: 1,
+                        y1: 100,
+                        fillcolor: 'rgba(39, 174, 96, 0.1)',
+                        line: { width: 0 },
+                        layer: 'below'
+                    }, {
+                        type: 'rect',
+                        xref: 'paper',
+                        yref: 'y',
+                        x0: 0,
+                        y0: 0,
+                        x1: 1,
+                        y1: 50,
+                        fillcolor: 'rgba(231, 76, 60, 0.1)',
+                        line: { width: 0 },
+                        layer: 'below'
+                    }]
+                };
+
+                const config = {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+                };
+
+                Plotly.newPlot('step3Chart', traces, layout, config);
+            }
+
+            async createVolumeChart() {
+                try {
+                    console.log('Cargando datos para gráfico de volumen...');
+                    
+                    if (!this.data || !this.data.volume) {
+                        console.log('No hay datos de volumen disponibles');
+                        document.getElementById('volumeChart').innerHTML = `
+                            <div class="text-center text-muted p-3">
+                                <p>No hay datos de volumen disponibles</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const trace = {
+                        x: this.data.dates,
+                        y: this.data.volume,
+                        type: 'bar',
+                        name: 'Volumen',
+                        marker: { color: '#9467bd' }
+                    };
+
+                    const layout = {
+                        title: 'Volumen de Transacciones',
+                        xaxis: { title: 'Fecha', type: 'date' },
+                        yaxis: { title: 'Volumen' },
+                        margin: { t: 50, b: 60, l: 60, r: 30 }
+                    };
+
+                    await Plotly.newPlot('volumeChart', [trace], layout, { responsive: true });
+                    console.log('Gráfico de volumen creado exitosamente');
+
+                } catch (error) {
+                    console.error('Error creando gráfico de volumen:', error);
+                    document.getElementById('volumeChart').innerHTML = `
+                        <div class="text-center text-danger p-3">
+                            <i class="fas fa-chart-bar fa-2x"></i>
+                            <p class="mt-2">Error cargando volumen</p>
+                        </div>
+                    `;
+                }
+            }
+
+            async createIndicatorsChart() {
+                try {
+                    console.log('Cargando datos para indicadores técnicos...');
+                    
+                    if (!this.data || !this.data.rsi) {
+                        console.log('No hay datos de indicadores disponibles');
+                        document.getElementById('indicatorsChart').innerHTML = `
+                            <div class="text-center text-muted p-3">
+                                <p>No hay datos de indicadores disponibles</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const traces = [
+                        {
+                            x: this.data.dates,
+                            y: this.data.rsi,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'RSI',
+                            line: { color: '#ff7f0e' },
+                            yaxis: 'y'
+                        },
+                        {
+                            x: this.data.dates,
+                            y: this.data.macd,
+                            type: 'scatter',
+                            mode: 'lines',
+                            name: 'MACD',
+                            line: { color: '#2ca02c' },
+                            yaxis: 'y2'
+                        }
+                    ];
+
+                    const layout = {
+                        title: 'Indicadores Técnicos',
+                        xaxis: { title: 'Fecha', type: 'date' },
+                        yaxis: { 
+                            title: 'RSI', 
+                            side: 'left',
+                            range: [0, 100]
+                        },
+                        yaxis2: {
+                            title: 'MACD',
+                            side: 'right',
+                            overlaying: 'y'
+                        },
+                        margin: { t: 50, b: 60, l: 60, r: 60 }
+                    };
+
+                    await Plotly.newPlot('indicatorsChart', traces, layout, { responsive: true });
+                    console.log('Gráfico de indicadores creado exitosamente');
+
+                } catch (error) {
+                    console.error('Error creando gráfico de indicadores:', error);
+                    document.getElementById('indicatorsChart').innerHTML = `
+                        <div class="text-center text-danger p-3">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                            <p class="mt-2">Error cargando indicadores</p>
+                        </div>
+                    `;
+                }
+            }
+
+        }
+
+        // Inicializar dashboard cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            new CryptoDashboard();
+        });
+    </script>
+</body>
+</html>
