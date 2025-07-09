@@ -5,8 +5,12 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, f1_score, roc_auc_score
+from sklearn.preprocessing import MinMaxScaler
 from ta.momentum import RSIIndicator, StochasticOscillator
 from ta.trend import MACD
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+import os
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -31,9 +35,135 @@ class CryptoPredictor:
                         'price_range_pct', 'volume_log_change', 'volume_log_ma_7d', 
                         'marketCap_log_change', 'liq_ratio']
         
+        # Configuración para LSTM
+        self.lstm_model = None
+        self.lstm_scaler = None
+        self.lstm_window_size = 7  # Ajustado para coincidir con el modelo preentrenado
+        
         self.load_and_prepare_data()
         self.train_all_models()
     
+    def load_lstm_model(self):
+        """Cargar el modelo LSTM preentrenado"""
+        try:
+            # Intentar cargar desde diferentes ubicaciones
+            possible_paths = [
+                './models/lstm_model.keras',
+                './src/models/lstm_model.keras',
+                '../models/lstm_model.keras',
+                'models/lstm_model.keras',
+                'src/models/lstm_model.keras'
+            ]
+            
+            model_loaded = False
+            for path in possible_paths:
+                try:
+                    if os.path.exists(path):
+                        self.lstm_model = load_model(path)
+                        print(f"Modelo LSTM cargado desde: {path}")
+                        model_loaded = True
+                        break
+                except Exception as e:
+                    print(f"Error cargando desde {path}: {e}")
+                    continue
+            
+            if not model_loaded:
+                print("No se pudo cargar el modelo LSTM")
+                return None
+                
+            return self.lstm_model
+            
+        except Exception as e:
+            print(f"Error cargando modelo LSTM: {e}")
+            return None
+    
+    def prepare_lstm_data(self, data_subset=None, target_col='close'):
+        """Preparar datos para el modelo LSTM"""
+        if data_subset is None:
+            data_subset = self.data
+        
+        # Seleccionar solo las primeras 14 features para coincidir con el modelo
+        lstm_features = self.features[:14]  # Solo las primeras 14 features
+        feature_data = data_subset[lstm_features].copy()
+        
+        # Normalizar los datos
+        if self.lstm_scaler is None:
+            self.lstm_scaler = MinMaxScaler()
+            scaled_features = self.lstm_scaler.fit_transform(feature_data)
+        else:
+            scaled_features = self.lstm_scaler.transform(feature_data)
+        
+        # Crear secuencias para LSTM
+        X, y = [], []
+        for i in range(self.lstm_window_size, len(scaled_features)):
+            X.append(scaled_features[i-self.lstm_window_size:i])
+            y.append(data_subset[target_col].iloc[i])
+        
+        return np.array(X), np.array(y)
+    
+    def predict_with_lstm(self, X_test, original_data_test):
+        """Hacer predicciones con el modelo LSTM"""
+        if self.lstm_model is None:
+            return None
+        
+        # Hacer predicciones
+        predictions = self.lstm_model.predict(X_test)
+        
+        # Las predicciones están normalizadas, necesitamos desnormalizarlas
+        # Crear un array con las features para desnormalizar
+        dummy_features = np.zeros((len(predictions), 14))  # Solo 14 features
+        dummy_features[:, 0] = predictions.flatten()  # Assuming 'close' is the first feature
+        
+        # Desnormalizar
+        denormalized = self.lstm_scaler.inverse_transform(dummy_features)
+        lstm_predictions = denormalized[:, 0]
+        
+        return lstm_predictions
+    
+    def predict_future_lstm(self, days=30):
+        """Predecir precios futuros usando el modelo LSTM"""
+        if self.lstm_model is None:
+            return None
+        
+        # Preparar datos para predicción
+        X, y = self.prepare_lstm_data()
+        
+        # Usar la última secuencia como punto de inicio
+        last_sequence = X[-1]
+        predictions = []
+        
+        for _ in range(days):
+            # Predecir el siguiente valor
+            next_pred = self.lstm_model.predict(last_sequence.reshape(1, self.lstm_window_size, 14), verbose=0)
+            
+            # Desnormalizar la predicción
+            dummy_features = np.zeros((1, 14))  # Solo 14 features
+            dummy_features[0, 0] = next_pred[0, 0]
+            denormalized = self.lstm_scaler.inverse_transform(dummy_features)
+            pred_value = denormalized[0, 0]
+            
+            predictions.append(pred_value)
+            
+            # Actualizar la secuencia para la siguiente predicción
+            # Crear nueva fila con la predicción
+            new_row = last_sequence[-1].copy()
+            new_row[0] = next_pred[0, 0]  # Actualizar el precio de cierre normalizado
+            
+            # Actualizar la secuencia
+            last_sequence = np.vstack([last_sequence[1:], new_row])
+        
+        # Crear fechas futuras
+        future_dates = pd.date_range(
+            start=self.data.index[-1] + pd.Timedelta(days=1),
+            periods=days,
+            freq='D'
+        )
+        
+        return {
+            'dates': future_dates,
+            'predictions': predictions
+        }
+
     def create_sliding_window(self, data, target, days_past, day_future, features, binarize=False):
         """Crear ventanas deslizantes para diferentes tipos de predicción"""
         df = data.reset_index(drop=True)
@@ -180,8 +310,8 @@ class CryptoPredictor:
         self.train_probability_models()
     
     def train_regression_models(self):
-        """Paso 1: Entrenar modelos de regresión"""
-        # Crear ventanas deslizantes para regresión
+        """Paso 1: Entrenar modelos de regresión incluyendo LSTM"""
+        # Crear ventanas deslizantes para regresión tradicional
         X, y = self.create_sliding_windows_numpy(self.features, window_size=7)
         X_flat = X.reshape(X.shape[0], -1)
         
@@ -200,11 +330,47 @@ class CryptoPredictor:
         rf_model.fit(X_train, y_train)
         rf_pred = rf_model.predict(X_test)
         
+        # Cargar y probar modelo LSTM
+        self.load_lstm_model()
+        lstm_pred = None
+        
+        if self.lstm_model is not None:
+            try:
+                # Preparar datos para LSTM
+                X_lstm, y_lstm = self.prepare_lstm_data()
+                
+                # Dividir datos para LSTM (mantener el mismo split)
+                split_idx = int(len(X_lstm) * 0.8)
+                X_lstm_train, X_lstm_test = X_lstm[:split_idx], X_lstm[split_idx:]
+                y_lstm_train, y_lstm_test = y_lstm[:split_idx], y_lstm[split_idx:]
+                
+                # Hacer predicciones con LSTM
+                lstm_pred = self.lstm_model.predict(X_lstm_test)
+                
+                # Desnormalizar predicciones
+                dummy_features = np.zeros((len(lstm_pred), 14))  # Solo 14 features
+                dummy_features[:, 0] = lstm_pred.flatten()
+                denormalized = self.lstm_scaler.inverse_transform(dummy_features)
+                lstm_pred = denormalized[:, 0]
+                
+                # Ajustar y_test para que coincida con las predicciones LSTM
+                y_test_lstm = y_lstm_test
+                
+                print(f"LSTM predicciones generadas: {len(lstm_pred)}")
+                
+            except Exception as e:
+                print(f"Error procesando modelo LSTM: {e}")
+                lstm_pred = None
+        
         # Guardar modelos y predicciones
         self.regression_models = {
             'linear_regression': lr_model,
             'random_forest': rf_model
         }
+        
+        # Agregar LSTM si está disponible
+        if self.lstm_model is not None:
+            self.regression_models['lstm'] = self.lstm_model
         
         self.regression_predictions = {
             'y_test': y_test,
@@ -216,6 +382,14 @@ class CryptoPredictor:
             'y_train': y_train
         }
         
+        # Agregar predicciones LSTM si están disponibles
+        if lstm_pred is not None:
+            self.regression_predictions['lstm'] = lstm_pred
+            # Ajustar fechas para LSTM
+            lstm_dates = self.data.index[self.lstm_window_size:][split_idx:]
+            self.regression_predictions['lstm_dates'] = lstm_dates
+            self.regression_predictions['y_test_lstm'] = y_test_lstm
+        
         # Calcular métricas
         self.regression_metrics = {}
         for model_name in ['linear_regression', 'random_forest']:
@@ -224,6 +398,14 @@ class CryptoPredictor:
                 'rmse': np.sqrt(mean_squared_error(y_test, pred)),
                 'mae': mean_absolute_error(y_test, pred),
                 'r2': r2_score(y_test, pred)
+            }
+        
+        # Calcular métricas para LSTM si está disponible
+        if lstm_pred is not None:
+            self.regression_metrics['lstm'] = {
+                'rmse': np.sqrt(mean_squared_error(y_test_lstm, lstm_pred)),
+                'mae': mean_absolute_error(y_test_lstm, lstm_pred),
+                'r2': r2_score(y_test_lstm, lstm_pred)
             }
     
     def train_classification_models(self):
@@ -429,6 +611,10 @@ class CryptoPredictor:
         if model_name not in self.regression_models:
             return None
         
+        # Si es LSTM, usar método específico
+        if model_name == 'lstm':
+            return self.predict_future_lstm(days)
+        
         model = self.regression_models[model_name]
         
         # Crear ventanas deslizantes
@@ -614,14 +800,25 @@ def get_step1_data(model_name, days=None):
             
         preds = crypto_predictor.regression_predictions
         
-        result = {
-            'dates': preds['test_dates'].strftime('%Y-%m-%d').tolist(),
-            'actual': [float(x) for x in preds['y_test']],
-            'predictions': [float(x) for x in preds[model_name]],
-            'metrics': crypto_predictor.regression_metrics[model_name],
-            'model_type': 'regression',
-            'step': 1
-        }
+        # Manejar fechas y datos específicos para LSTM
+        if model_name == 'lstm' and 'lstm_dates' in preds:
+            result = {
+                'dates': preds['lstm_dates'].strftime('%Y-%m-%d').tolist(),
+                'actual': [float(x) for x in preds['y_test_lstm']],
+                'predictions': [float(x) for x in preds[model_name]],
+                'metrics': crypto_predictor.regression_metrics[model_name],
+                'model_type': 'regression',
+                'step': 1
+            }
+        else:
+            result = {
+                'dates': preds['test_dates'].strftime('%Y-%m-%d').tolist(),
+                'actual': [float(x) for x in preds['y_test']],
+                'predictions': [float(x) for x in preds[model_name]],
+                'metrics': crypto_predictor.regression_metrics[model_name],
+                'model_type': 'regression',
+                'step': 1
+            }
         
         # Si se especifican días, agregar predicciones futuras
         if days:
@@ -782,6 +979,32 @@ def get_chart_data():
         print(f"Error en get_chart_data: {str(e)}")
         import traceback
         traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/lstm_info')
+def get_lstm_info():
+    """API para obtener información específica del modelo LSTM"""
+    try:
+        if crypto_predictor.lstm_model is None:
+            return jsonify({'error': 'Modelo LSTM no disponible'}), 404
+            
+        lstm_info = {
+            'model_loaded': crypto_predictor.lstm_model is not None,
+            'window_size': crypto_predictor.lstm_window_size,
+            'features_used': crypto_predictor.features[:14],  # Solo las primeras 14 features
+            'features_count': 14,
+            'model_summary': str(crypto_predictor.lstm_model.summary()) if crypto_predictor.lstm_model else None,
+            'scaler_fitted': crypto_predictor.lstm_scaler is not None
+        }
+        
+        # Agregar información de arquitectura si está disponible
+        if crypto_predictor.lstm_model is not None:
+            lstm_info['input_shape'] = crypto_predictor.lstm_model.input_shape
+            lstm_info['output_shape'] = crypto_predictor.lstm_model.output_shape
+            lstm_info['layers_count'] = len(crypto_predictor.lstm_model.layers)
+        
+        return jsonify(lstm_info)
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/system_info')

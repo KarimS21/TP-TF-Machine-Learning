@@ -553,6 +553,7 @@
                                     <select id="step1ModelSelect" class="form-select">
                                         <option value="random_forest">Random Forest</option>
                                         <option value="linear_regression">Regresión Lineal</option>
+                                        <option value="lstm">LSTM Neural Network</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
@@ -811,8 +812,13 @@
                     
                     // Determinar el modelo correcto para el Paso 1 (regresión)
                     let modelName = this.step1Model;
+                    let displayName = modelName.replace('_', ' ');
+                    
                     if (this.step1Model === 'logistic_regression') {
                         modelName = 'linear_regression'; // Usar regresión lineal si se selecciona logística
+                        displayName = 'Linear Regression';
+                    } else if (this.step1Model === 'lstm') {
+                        displayName = 'LSTM Neural Network';
                     }
                     
                     const response = await fetch(`/api/step1_data/${modelName}/${this.step1Days}`);
@@ -837,7 +843,7 @@
                             y: stepData.predictions,
                             type: 'scatter',
                             mode: 'lines',
-                            name: `Predicción (${modelName.replace('_', ' ')})`,
+                            name: `Predicción (${displayName})`,
                             line: { color: '#ff7f0e', width: 2, dash: 'dash' }
                         }
                     ];
@@ -855,7 +861,7 @@
                     }
 
                     const layout = {
-                        title: `Paso 1: Regresión - ${modelName.replace('_', ' ').toUpperCase()} (${this.step1Days} días)`,
+                        title: `Paso 1: Regresión - ${displayName.toUpperCase()} (${this.step1Days} días)`,
                         xaxis: { 
                             title: 'Fecha',
                             type: 'date'
