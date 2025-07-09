@@ -645,11 +645,16 @@ def get_step2_data(model_name, days=None):
             
         preds = crypto_predictor.classification_predictions
         
+        # Obtener precios reales correspondientes a las fechas de prueba
+        test_dates = preds['test_dates']
+        actual_prices = crypto_predictor.data.loc[test_dates, 'close'].values
+        
         result = {
             'dates': preds['test_dates'].strftime('%Y-%m-%d').tolist(),
             'actual': [int(x) for x in preds['y_test']],
             'predictions': [int(x) for x in preds[model_name]],
             'probabilities': [float(x) for x in preds[f'{model_name}_proba']],
+            'actual_prices': [float(x) for x in actual_prices],
             'metrics': crypto_predictor.classification_metrics[model_name],
             'model_type': 'classification',
             'step': 2
