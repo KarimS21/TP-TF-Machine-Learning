@@ -1,16 +1,12 @@
 from flask import Flask, render_template, jsonify
 import pandas as pd
 import numpy as np
-import plotly.graph_objs as go
-import plotly.utils
-import json
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, f1_score, roc_auc_score
 from ta.momentum import RSIIndicator, StochasticOscillator
 from ta.trend import MACD
-import scipy.stats as stats
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -28,6 +24,12 @@ class CryptoPredictor:
         # Paso 3: Modelos de probabilidad
         self.probability_models = {}
         self.probability_predictions = {}
+        
+        # Features utilizadas en todos los modelos
+        self.features = ['close', 'volume_log', 'marketCap_log', 'rsi_14',
+                        'macd', 'macd_signal', 'macd_diff', 'stoch_k', 'stoch_d', 
+                        'price_range_pct', 'volume_log_change', 'volume_log_ma_7d', 
+                        'marketCap_log_change', 'liq_ratio']
         
         self.load_and_prepare_data()
         self.train_all_models()
@@ -166,34 +168,21 @@ class CryptoPredictor:
         self.create_features()
         self.data.dropna(inplace=True)
     
-    def create_sliding_windows(self, features, target="close", window_size=7):
-        """Crear ventanas deslizantes para el modelo"""
-        X, y = [], []
-        for i in range(window_size, len(self.data)):
-            X.append(self.data[features].iloc[i - window_size:i].values)
-            y.append(self.data[target].iloc[i])
-        return np.array(X), np.array(y)
-    
     def train_all_models(self):
         """Entrenar modelos para los 3 pasos"""
-        features = ['close', 'volume_log', 'marketCap_log', 'rsi_14',
-                   'macd', 'macd_signal', 'macd_diff', 'stoch_k', 'stoch_d', 
-                   'price_range_pct', 'volume_log_change', 'volume_log_ma_7d', 
-                   'marketCap_log_change', 'liq_ratio']
-        
         # Paso 1: Regresión directa del precio
-        self.train_regression_models(features)
+        self.train_regression_models()
         
         # Paso 2: Clasificación binaria
-        self.train_classification_models(features)
+        self.train_classification_models()
         
         # Paso 3: Probabilidad de incremento
-        self.train_probability_models(features)
+        self.train_probability_models()
     
-    def train_regression_models(self, features):
+    def train_regression_models(self):
         """Paso 1: Entrenar modelos de regresión"""
         # Crear ventanas deslizantes para regresión
-        X, y = self.create_sliding_windows_numpy(features, window_size=7)
+        X, y = self.create_sliding_windows_numpy(self.features, window_size=7)
         X_flat = X.reshape(X.shape[0], -1)
         
         # Dividir datos
@@ -237,10 +226,10 @@ class CryptoPredictor:
                 'r2': r2_score(y_test, pred)
             }
     
-    def train_classification_models(self, features):
+    def train_classification_models(self):
         """Paso 2: Entrenar modelos de clasificación binaria"""
         # Crear dataset para clasificación (1 día futuro)
-        df_1day = self.create_sliding_window(self.data, 'close', 7, 1, features, binarize=True)
+        df_1day = self.create_sliding_window(self.data, 'close', 7, 1, self.features, binarize=True)
         
         X = df_1day.drop('target', axis=1).values
         y = df_1day['target'].astype(int).values
@@ -287,12 +276,12 @@ class CryptoPredictor:
                 'roc_auc': roc_auc_score(y_test, proba)
             }
     
-    def train_probability_models(self, features):
+    def train_probability_models(self):
         """Paso 3: Entrenar modelos de probabilidad de incremento"""
         # Usar datos de diferentes horizontes temporales para mejor análisis
-        df_1day = self.create_sliding_window(self.data, 'close', 7, 1, features, binarize=True)
-        df_7day = self.create_sliding_window(self.data, 'close', 15, 7, features, binarize=True)
-        df_15day = self.create_sliding_window(self.data, 'close', 15, 15, features, binarize=True)
+        df_1day = self.create_sliding_window(self.data, 'close', 7, 1, self.features, binarize=True)
+        df_7day = self.create_sliding_window(self.data, 'close', 15, 7, self.features, binarize=True)
+        df_15day = self.create_sliding_window(self.data, 'close', 15, 15, self.features, binarize=True)
         
         # Usar el dataset de 7 días como principal para el Paso 3
         self.probability_1day_results = self.logistic_regression_analysis(df_1day)
@@ -428,7 +417,7 @@ class CryptoPredictor:
         }
     
     def create_sliding_windows_numpy(self, features, target="close", window_size=7):
-        """Crear ventanas deslizantes en formato numpy (para compatibilidad)"""
+        """Crear ventanas deslizantes en formato numpy"""
         X, y = [], []
         for i in range(window_size, len(self.data)):
             X.append(self.data[features].iloc[i - window_size:i].values)
@@ -441,13 +430,9 @@ class CryptoPredictor:
             return None
         
         model = self.regression_models[model_name]
-        features = ['close', 'volume_log', 'marketCap_log', 'rsi_14',
-                   'macd', 'macd_signal', 'macd_diff', 'stoch_k', 'stoch_d', 
-                   'price_range_pct', 'volume_log_change', 'volume_log_ma_7d', 
-                   'marketCap_log_change', 'liq_ratio']
         
         # Crear ventanas deslizantes
-        X, y = self.create_sliding_windows_numpy(features, window_size=7)
+        X, y = self.create_sliding_windows_numpy(self.features, window_size=7)
         
         # Última ventana de datos
         last_window = X[-1]  # últimos 7 días
@@ -481,17 +466,13 @@ class CryptoPredictor:
             return None
         
         model = self.probability_models[model_name]
-        features = ['close', 'volume_log', 'marketCap_log', 'rsi_14',
-                   'macd', 'macd_signal', 'macd_diff', 'stoch_k', 'stoch_d', 
-                   'price_range_pct', 'volume_log_change', 'volume_log_ma_7d', 
-                   'marketCap_log_change', 'liq_ratio']
         
         # Usar ventanas de diferentes tamaños según el modelo
         window_size = 15 if model_name == 'random_forest' else 7
         
         # Crear dataset para predicción (similar al entrenamiento)
         df_for_prediction = self.create_sliding_window(
-            self.data, 'close', window_size, days, features, binarize=True
+            self.data, 'close', window_size, days, self.features, binarize=True
         )
         
         if len(df_for_prediction) == 0:
@@ -525,17 +506,13 @@ class CryptoPredictor:
             return None
         
         model = self.classification_models[model_name]
-        features = ['close', 'volume_log', 'marketCap_log', 'rsi_14',
-                   'macd', 'macd_signal', 'macd_diff', 'stoch_k', 'stoch_d', 
-                   'price_range_pct', 'volume_log_change', 'volume_log_ma_7d', 
-                   'marketCap_log_change', 'liq_ratio']
         
         # Usar ventanas de 7 días para clasificación (igual que en entrenamiento)
         window_size = 7
         
         # Crear dataset para predicción (similar al entrenamiento)
         df_for_prediction = self.create_sliding_window(
-            self.data, 'close', window_size, days, features, binarize=True
+            self.data, 'close', window_size, days, self.features, binarize=True
         )
         
         if len(df_for_prediction) == 0:
@@ -713,42 +690,6 @@ def get_step3_data(model_name, days=None):
             'step': 3
         }
         
-        def RandomForest(df):
-            X = df.drop('target', axis=1).values
-            y = df['target'].astype(int).values
-
-            # 3) Divide en train/validation (80% / 20%), manteniendo proporción de clases
-            X_train, X_val, y_train, y_val, df_train, df_val = train_test_split(
-                X, y, df, 
-                test_size=0.2, 
-                random_state=42, 
-                stratify=y
-            )
-
-            # 5) Crea y entrena el Random Forest
-            rf = RandomForestClassifier(
-                n_estimators=100,
-                random_state=42,
-                class_weight='balanced'  # opcional, útil si hay desbalance
-            )
-            rf.fit(X_train, y_train)
-
-            # 6) Obtén probabilidades de la clase “1” (subida)
-            probs_train = rf.predict_proba(X_train)[:, 1]
-            probs_val   = rf.predict_proba(X_val)[:, 1]
-
-            # 7) Añade esas probabilidades a los DataFrames
-            df_train['prob_subida'] = probs_train
-            df_val  ['prob_subida'] = probs_val
-
-            # 8) Evalúa rendimiento
-            print(f"Train ROC AUC: {roc_auc_score(y_train, probs_train):.4f}")
-            print(f" Val  ROC AUC: {roc_auc_score(y_val,   probs_val):.4f}\n")
-
-            y_pred_val = (probs_val >= 0.5).astype(int)
-            # Esta función ya está implementada en la clase CryptoPredictor
-            # La función duplicada debe ser eliminada
-
         # Si se especifican días, obtener predicción futura
         if days:
             future_prob = crypto_predictor.predict_probability_future(model_name, days)
@@ -842,18 +783,18 @@ def get_chart_data():
 def get_system_info():
     """API para obtener información del sistema"""
     try:
+        all_models = {**crypto_predictor.regression_models, 
+                     **crypto_predictor.classification_models, 
+                     **crypto_predictor.probability_models}
+        
         return jsonify({
             'data_points': len(crypto_predictor.data),
             'date_range': {
                 'start': crypto_predictor.data.index.min().strftime('%Y-%m-%d'),
                 'end': crypto_predictor.data.index.max().strftime('%Y-%m-%d')
             },
-            'models_available': list(crypto_predictor.models.keys()),
-            'features_count': len(['close', 'volume_log', 'marketCap_log', 'rsi_14',
-                                 'macd', 'macd_signal', 'macd_diff', 'stoch_k', 'stoch_d', 'year',
-                                 'month', 'day', 'day_of_week', 'quarter', 'price_range_pct',
-                                 'volume_log_change', 'volume_log_ma_7d', 'marketCap_log_change',
-                                 'liq_ratio']),
+            'models_available': list(all_models.keys()),
+            'features_count': len(crypto_predictor.features),
             'current_price': float(crypto_predictor.data['close'].iloc[-1]),
             'status': 'active'
         })

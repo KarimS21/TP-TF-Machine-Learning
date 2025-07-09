@@ -87,6 +87,259 @@
             padding: 1rem;
             margin-bottom: 1rem;
         }
+        
+        /* Estilos para la tarjeta de pronóstico */
+        .forecast-container {
+            display: flex;
+            gap: 30px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            align-items: center;
+        }
+        
+        .forecast-chart {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .forecast-chart canvas {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        
+        .forecast-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-left: 20px;
+            border-left: 2px solid #e9ecef;
+        }
+        
+        .forecast-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .forecast-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .forecast-model {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .forecast-probabilities {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .prob-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .prob-item.main {
+            transform: scale(1.1);
+        }
+        
+        .prob-item.secondary {
+            opacity: 0.6;
+            transform: scale(0.9);
+        }
+        
+        .prob-arrow {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .prob-item.main .prob-arrow {
+            font-size: 3.5rem;
+        }
+        
+        .prob-item.secondary .prob-arrow {
+            font-size: 2rem;
+        }
+        
+        .prob-arrow.up {
+            color: #27ae60;
+        }
+        
+        .prob-arrow.down {
+            color: #e74c3c;
+        }
+        
+        .prob-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+            transition: all 0.3s ease;
+        }
+        
+        .prob-item.main .prob-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .prob-item.secondary .prob-text {
+            font-size: 1rem;
+        }
+        
+        .forecast-date {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #495057;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .forecast-metrics {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: center;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .forecast-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .forecast-info {
+                padding-left: 0;
+                border-left: none;
+                border-top: 2px solid #e9ecef;
+                padding-top: 20px;
+            }
+            
+            .forecast-chart canvas {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+        
+        /* Animaciones */
+        .forecast-container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .prob-arrow {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        /* Estilos obsoletos de la tarjeta anterior */
+        .forecast-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 2px solid #e0e0e0;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .forecast-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 0 20px;
+        }
+        
+        .forecast-arrow {
+            font-size: 4rem;
+            padding: 20px;
+            border-radius: 50%;
+            margin-right: 20px;
+        }
+        
+        .forecast-arrow.up {
+            background: linear-gradient(135deg, #52c41a, #389e0d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(82, 196, 26, 0.4);
+        }
+        
+        .forecast-arrow.down {
+            background: linear-gradient(135deg, #ff4d4f, #cf1322);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 77, 79, 0.4);
+        }
+        
+        .forecast-main {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .forecast-secondary {
+            flex: 1;
+            text-align: right;
+        }
+        
+        .forecast-direction {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .forecast-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .forecast-direction.up,
+        .forecast-percentage.up {
+            color: #52c41a;
+        }
+        
+        .forecast-direction.down,
+        .forecast-percentage.down {
+            color: #ff4d4f;
+        }
     </style>
 </head>
 <body>
@@ -108,94 +361,38 @@
     </div>
 
     <div class="container-fluid">
-        <!-- Control Global -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="controls">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <label for="globalModelSelect" class="form-label">Modelo Global:</label>
-                                    <select id="globalModelSelect" class="form-select">
-                                        <option value="random_forest">Random Forest</option>
-                                        <option value="linear_regression">Regresión Lineal</option>
-                                        <option value="logistic_regression">Regresión Logística</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="globalDaysSelect" class="form-label">Días de Predicción:</label>
-                                    <select id="globalDaysSelect" class="form-select">
-                                        <option value="1">1 día</option>
-                                        <option value="3">3 días</option>
-                                        <option value="7" selected>7 días</option>
-                                        <option value="15">15 días</option>
-                                        <option value="30">30 días</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="globalDateSelect" class="form-label">Fecha de Predicción:</label>
-                                    <input type="date" id="globalDateSelect" class="form-control">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">&nbsp;</label>
-                                    <div>
-                                        <button class="btn btn-primary w-100" id="updateAllCharts">
-                                            <i class="fas fa-sync-alt me-2"></i>Actualizar Todos
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="text-end">
-                                <h6><i class="fas fa-info-circle me-2"></i>Configuración Global</h6>
-                                <small class="text-muted">Estos parámetros se aplicarán a los 3 pasos del modelo</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Métricas Generales -->
-        <div class="row" id="metricsRow">
-            <div class="col-md-3">
-                <div class="metric-card">
-                    <div class="metric-value" id="rmseValue">-</div>
-                    <div class="metric-label">RMSE</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card">
-                    <div class="metric-value" id="maeValue">-</div>
-                    <div class="metric-label">MAE</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card">
-                    <div class="metric-value" id="r2Value">-</div>
-                    <div class="metric-label">R²</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="metric-card">
-                    <div class="metric-value" id="lastPrice">-</div>
-                    <div class="metric-label">Último Precio</div>
-                </div>
-            </div>
-        </div>
 
         <!-- Paso 1: Regresión Directa del Precio -->
         <div class="row">
             <div class="col-12 mb-4">
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-line me-2"></i>Paso 1: Regresión Directa del Precio</h3>
-                    <p class="text-muted">Predicción del valor numérico del precio de cierre</p>
-                    <div id="step1Chart" class="loading">
-                        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
-                        <p class="mt-3">Cargando datos del Paso 1...</p>
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-8">
+                            <h3><i class="fas fa-chart-line me-2"></i>Paso 1: Regresión Directa del Precio</h3>
+                            <p class="text-muted">Predicción del valor numérico del precio de cierre</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="step1ModelSelect" class="form-label">Modelo:</label>
+                                    <select id="step1ModelSelect" class="form-select">
+                                        <option value="random_forest">Random Forest</option>
+                                        <option value="linear_regression">Regresión Lineal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="step1DaysSelect" class="form-label">Días:</label>
+                                    <select id="step1DaysSelect" class="form-select">
+                                        <option value="1">1 día</option>
+                                        <option value="7" selected>7 días</option>
+                                        <option value="15">15 días</option>
+                                        <option value="30">30 días</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div id="step1Chart"></div>
                 </div>
             </div>
         </div>
@@ -204,12 +401,33 @@
         <div class="row">
             <div class="col-12 mb-4">
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar me-2"></i>Paso 2: Clasificación Binaria (Sube/Baja)</h3>
-                    <p class="text-muted">Predicción de la dirección del movimiento del precio</p>
-                    <div id="step2Chart" class="loading">
-                        <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
-                        <p class="mt-3">Cargando datos del Paso 2...</p>
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-8">
+                            <h3><i class="fas fa-chart-bar me-2"></i>Paso 2: Clasificación Binaria (Sube/Baja)</h3>
+                            <p class="text-muted">Predicción de la dirección del movimiento del precio</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="step2ModelSelect" class="form-label">Modelo:</label>
+                                    <select id="step2ModelSelect" class="form-select">
+                                        <option value="random_forest">Random Forest</option>
+                                        <option value="logistic_regression">Regresión Logística</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="step2DaysSelect" class="form-label">Días:</label>
+                                    <select id="step2DaysSelect" class="form-select">
+                                        <option value="1">1 día</option>
+                                        <option value="7" selected>7 días</option>
+                                        <option value="15">15 días</option>
+                                        <option value="30">30 días</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div id="step2Chart"></div>
                 </div>
             </div>
         </div>
@@ -218,11 +436,33 @@
         <div class="row">
             <div class="col-12 mb-4">
                 <div class="chart-container">
-                    <h3><i class="fas fa-chart-area me-2"></i>Paso 3: Probabilidad de Incremento Significativo</h3>
-                    <p class="text-muted">Estimación de probabilidad de incremento</p>
-                    <div id="step3Chart" class="loading">
-                        <p class="mt-3">Cargando datos del Paso 3...</p>
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-8">
+                            <h3><i class="fas fa-chart-area me-2"></i>Paso 3: Probabilidad de Incremento Significativo</h3>
+                            <p class="text-muted">Estimación de probabilidad de incremento</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="step3ModelSelect" class="form-label">Modelo:</label>
+                                    <select id="step3ModelSelect" class="form-select">
+                                        <option value="random_forest">Random Forest</option>
+                                        <option value="logistic_regression">Regresión Logística</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="step3DaysSelect" class="form-label">Días:</label>
+                                    <select id="step3DaysSelect" class="form-select">
+                                        <option value="1">1 día</option>
+                                        <option value="7" >7 días</option>
+                                        <option value="15" selected>15 días</option>
+                                        <option value="30">30 días</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <div id="step3Chart"></div>
                 </div>
             </div>
         </div>
@@ -232,17 +472,13 @@
             <div class="col-md-6">
                 <div class="chart-container">
                     <h4><i class="fas fa-chart-bar me-2"></i>Volumen de Transacciones</h4>
-                    <div id="volumeChart" class="loading">
-                        <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                    </div>
+                    <div id="volumeChart"></div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="chart-container">
                     <h4><i class="fas fa-chart-line me-2"></i>Indicadores Técnicos</h4>
-                    <div id="indicatorsChart" class="loading">
-                        <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                    </div>
+                    <div id="indicatorsChart"></div>
                 </div>
             </div>
         </div>
@@ -253,59 +489,73 @@
         class CryptoDashboard {
             constructor() {
                 this.data = null;
-                this.globalModel = 'random_forest';
-                this.globalDays = 7;
-                this.globalDate = null;
+                this.step1Model = 'random_forest';
+                this.step1Days = 7;
+                this.step2Model = 'random_forest';
+                this.step2Days = 7;
+                this.step3Model = 'random_forest';
+                this.step3Days = 15;
                 this.init();
             }
 
             init() {
                 this.setupEventListeners();
-                this.setupDefaultDate();
                 this.loadData();
             }
 
-            setupDefaultDate() {
-                // Establecer fecha predeterminada (hoy + 7 días)
-                const today = new Date();
-                const futureDate = new Date(today);
-                futureDate.setDate(today.getDate() + 7);
-                
-                const dateString = futureDate.toISOString().split('T')[0];
-                document.getElementById('globalDateSelect').value = dateString;
-                this.globalDate = dateString;
-            }
-
             setupEventListeners() {
-                // Event listeners para controles globales
-                document.getElementById('globalModelSelect').addEventListener('change', (e) => {
-                    this.globalModel = e.target.value;
-                    this.updateAllCharts();
+                // Event listeners para Paso 1
+                document.getElementById('step1ModelSelect').addEventListener('change', (e) => {
+                    this.step1Model = e.target.value;
+                    this.updateStep1Chart();
                 });
 
-                document.getElementById('globalDaysSelect').addEventListener('change', (e) => {
-                    this.globalDays = parseInt(e.target.value);
-                    this.updateAllCharts();
+                document.getElementById('step1DaysSelect').addEventListener('change', (e) => {
+                    this.step1Days = parseInt(e.target.value);
+                    this.updateStep1Chart();
                 });
 
-                document.getElementById('globalDateSelect').addEventListener('change', (e) => {
-                    this.globalDate = e.target.value;
-                    this.updateAllCharts();
+                // Event listeners para Paso 2
+                document.getElementById('step2ModelSelect').addEventListener('change', (e) => {
+                    this.step2Model = e.target.value;
+                    this.updateStep2Chart();
                 });
 
-                document.getElementById('updateAllCharts').addEventListener('click', () => {
-                    this.updateAllCharts();
+                document.getElementById('step2DaysSelect').addEventListener('change', (e) => {
+                    this.step2Days = parseInt(e.target.value);
+                    this.updateStep2Chart();
+                });
+
+                // Event listeners para Paso 3
+                document.getElementById('step3ModelSelect').addEventListener('change', (e) => {
+                    this.step3Model = e.target.value;
+                    this.updateStep3Chart();
+                });
+
+                document.getElementById('step3DaysSelect').addEventListener('change', (e) => {
+                    this.step3Days = parseInt(e.target.value);
+                    this.updateStep3Chart();
                 });
             }
 
-            updateAllCharts() {
-                console.log(`Actualizando todos los gráficos - Modelo: ${this.globalModel}, Días: ${this.globalDays}, Fecha: ${this.globalDate}`);
-                this.updateCharts();
+            updateStep1Chart() {
+                console.log(`Actualizando gráfico del Paso 1 - Modelo: ${this.step1Model}, Días: ${this.step1Days}`);
+                this.createStep1Chart();
+            }
+
+            updateStep2Chart() {
+                console.log(`Actualizando gráfico del Paso 2 - Modelo: ${this.step2Model}, Días: ${this.step2Days}`);
+                this.createStep2Chart();
+            }
+
+            updateStep3Chart() {
+                console.log(`Actualizando gráfico del Paso 3 - Modelo: ${this.step3Model}, Días: ${this.step3Days}`);
+                this.cleanupChartListeners();
+                this.createStep3Chart();
             }
 
             async loadData() {
                 try {
-                    this.showLoading();
                     console.log('Cargando datos iniciales...');
                     
                     const response = await fetch('/api/historical_data');
@@ -320,32 +570,11 @@
 
                     this.data = data;
                     this.updateCharts();
-                    this.updateMetrics();
-                    this.hideLoading();
 
                 } catch (error) {
                     console.error('Error cargando datos:', error);
                     this.showError(error.message);
                 }
-            }
-
-            showLoading() {
-                const charts = ['step1Chart', 'step2Chart', 'step3Chart', 'volumeChart', 'indicatorsChart'];
-                charts.forEach(chartId => {
-                    const element = document.getElementById(chartId);
-                    if (element) {
-                        element.innerHTML = `
-                            <div class="loading">
-                                <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
-                                <p class="mt-2">Cargando...</p>
-                            </div>
-                        `;
-                    }
-                });
-            }
-
-            hideLoading() {
-                console.log('Indicadores de carga ocultados');
             }
 
             showError(message) {
@@ -383,15 +612,15 @@
 
             async createStep1Chart() {
                 try {
-                    console.log(`Creando gráfico del Paso 1 - Modelo: ${this.globalModel}, Días: ${this.globalDays}`);
+                    console.log(`Creando gráfico del Paso 1 - Modelo: ${this.step1Model}, Días: ${this.step1Days}`);
                     
                     // Determinar el modelo correcto para el Paso 1 (regresión)
-                    let modelName = this.globalModel;
-                    if (this.globalModel === 'logistic_regression') {
+                    let modelName = this.step1Model;
+                    if (this.step1Model === 'logistic_regression') {
                         modelName = 'linear_regression'; // Usar regresión lineal si se selecciona logística
                     }
                     
-                    const response = await fetch(`/api/step1_data/${modelName}/${this.globalDays}`);
+                    const response = await fetch(`/api/step1_data/${modelName}/${this.step1Days}`);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -425,13 +654,13 @@
                             y: stepData.future_predictions,
                             type: 'scatter',
                             mode: 'lines',
-                            name: `Predicción Futura (${this.globalDays} días)`,
+                            name: `Predicción Futura (${this.step1Days} días)`,
                             line: { color: '#d62728', width: 2, dash: 'dot' }
                         });
                     }
 
                     const layout = {
-                        title: `Paso 1: Regresión - ${modelName.replace('_', ' ').toUpperCase()} (${this.globalDays} días)`,
+                        title: `Paso 1: Regresión - ${modelName.replace('_', ' ').toUpperCase()} (${this.step1Days} días)`,
                         xaxis: { 
                             title: 'Fecha',
                             type: 'date'
@@ -463,9 +692,6 @@
 
                     Plotly.newPlot('step1Chart', traces, layout, config);
                     
-                    // Actualizar métricas del paso 1
-                    this.updateStep1Metrics(stepData.metrics);
-                    
                 } catch (error) {
                     console.error('Error en createStep1Chart:', error);
                     document.getElementById('step1Chart').innerHTML = `
@@ -479,15 +705,15 @@
 
             async createStep2Chart() {
                 try {
-                    console.log(`Creando gráfico del Paso 2 - Modelo: ${this.globalModel}, Días: ${this.globalDays}`);
+                    console.log(`Creando gráfico del Paso 2 - Modelo: ${this.step2Model}, Días: ${this.step2Days}`);
                     
                     // Determinar el modelo correcto para el Paso 2 (clasificación)
-                    let modelName = this.globalModel;
-                    if (this.globalModel === 'linear_regression') {
+                    let modelName = this.step2Model;
+                    if (this.step2Model === 'linear_regression') {
                         modelName = 'logistic_regression'; // Usar regresión logística si se selecciona lineal
                     }
                     
-                    const response = await fetch(`/api/step2_data/${modelName}/${this.globalDays}`);
+                    const response = await fetch(`/api/step2_data/${modelName}/${this.step2Days}`);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -499,25 +725,41 @@
                     const actualCategories = stepData.actual.map(val => val ? 'Sube' : 'Baja');
                     const predCategories = stepData.predictions.map(val => val ? 'Sube' : 'Baja');
                     
+                    // Estilo Diamantes fijo
                     const traces = [
                         {
                             x: stepData.dates,
-                            y: actualCategories,
+                            y: stepData.actual.map(val => val ? 1 : -1),
                             type: 'scatter',
                             mode: 'markers',
                             name: 'Dirección Real',
-                            marker: { 
+                            marker: {
                                 color: stepData.actual.map(val => val ? '#2ca02c' : '#d62728'),
-                                size: 8
+                                size: stepData.probabilities.map(prob => 10 + prob * 20), // Tamaño basado en probabilidad
+                                symbol: 'diamond',
+                                line: { width: 2, color: '#000' }
+                            }
+                        },
+                        {
+                            x: stepData.dates,
+                            y: stepData.predictions.map(val => val ? 0.5 : -0.5),
+                            type: 'scatter',
+                            mode: 'markers',
+                            name: 'Predicción del Modelo',
+                            marker: {
+                                color: stepData.predictions.map(val => val ? '#90EE90' : '#FFB6C1'),
+                                size: 12,
+                                symbol: 'cross'
                             }
                         },
                         {
                             x: stepData.dates,
                             y: stepData.probabilities,
                             type: 'scatter',
-                            mode: 'lines',
+                            mode: 'lines+markers',
                             name: 'Probabilidad de Subida',
                             line: { color: '#1f77b4', width: 2 },
+                            marker: { size: 4 },
                             yaxis: 'y2'
                         }
                     ];
@@ -531,28 +773,38 @@
                         
                         traces.push({
                             x: [futureDate.toISOString().split('T')[0]],
-                            y: [stepData.future_prediction.prediction ? 'Sube' : 'Baja'],
+                            y: [stepData.future_prediction.prediction ? 1 : -1],
                             type: 'scatter',
-                            mode: 'markers',
+                            mode: 'markers+text',
                             name: `Predicción Futura (${stepData.future_prediction.probability.toFixed(3)} prob.)`,
+                            text: [stepData.future_prediction.prediction ? '↑' : '↓'],
+                            textfont: { 
+                                size: 28, 
+                                color: stepData.future_prediction.prediction ? '#2ca02c' : '#d62728' 
+                            },
+                            textposition: 'middle center',
                             marker: {
                                 color: stepData.future_prediction.prediction ? '#2ca02c' : '#d62728',
-                                size: 15,
+                                size: 20,
                                 symbol: 'star'
                             }
                         });
                     }
 
                     const layout = {
-                        title: `Paso 2: Clasificación - ${modelName.replace('_', ' ').toUpperCase()} (${this.globalDays} días)`,
+                        title: `Paso 2: Clasificación - ${modelName.replace('_', ' ').toUpperCase()} (${this.step2Days} días)`,
                         xaxis: { 
                             title: 'Fecha',
                             type: 'date'
                         },
-                        yaxis: { 
+                        yaxis: {
                             title: 'Dirección del Precio',
-                            categoryorder: 'array',
-                            categoryarray: ['Baja', 'Sube']
+                            range: [-1.5, 1.5],
+                            tickvals: [-1, 0, 1],
+                            ticktext: ['Baja ↓', 'Neutral', 'Sube ↑'],
+                            zeroline: true,
+                            zerolinecolor: '#666',
+                            zerolinewidth: 2
                         },
                         yaxis2: {
                             title: 'Probabilidad',
@@ -596,15 +848,15 @@
 
             async createStep3Chart() {
                 try {
-                    console.log(`Creando gráfico del Paso 3 - Modelo: ${this.globalModel}, Días: ${this.globalDays}`);
+                    console.log(`Creando forecast card del Paso 3 - Modelo: ${this.step3Model}, Días: ${this.step3Days}`);
                     
                     // Determinar el modelo correcto para el Paso 3 (probabilidad)
-                    let modelName = this.globalModel;
-                    if (this.globalModel === 'linear_regression') {
+                    let modelName = this.step3Model;
+                    if (this.step3Model === 'linear_regression') {
                         modelName = 'logistic_regression'; // Usar regresión logística si se selecciona lineal
                     }
                     
-                    const response = await fetch(`/api/step3_data/${modelName}/${this.globalDays}`);
+                    const response = await fetch(`/api/step3_data/${modelName}/${this.step3Days}`);
                     
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -612,100 +864,420 @@
                     
                     const stepData = await response.json();
                     
-                    // Crear categorías de probabilidad para colores
-                    const probabilityColors = stepData.probabilities.map(prob => {
-                        if (prob >= 0.7) return '#2ca02c'; // Verde para alta probabilidad
-                        else if (prob >= 0.5) return '#ff7f0e'; // Naranja para probabilidad media
-                        else return '#d62728'; // Rojo para baja probabilidad
-                    });
+                    // Calcular la fecha futura
+                    const lastDate = new Date(stepData.dates[stepData.dates.length - 1]);
+                    const futureDate = new Date(lastDate);
+                    futureDate.setDate(futureDate.getDate() + this.step3Days);
                     
-                    const traces = [
-                        {
-                            x: stepData.dates,
-                            y: stepData.probabilities,
-                            type: 'scatter',
-                            mode: 'markers+lines',
-                            name: `Probabilidad de Incremento (${this.globalDays} días)`,
-                            line: { color: '#1f77b4', width: 2 },
-                            marker: {
-                                color: probabilityColors,
-                                size: 8
-                            }
-                        },
-                        {
-                            x: stepData.dates,
-                            y: Array(stepData.dates.length).fill(0.5),
-                            type: 'scatter',
-                            mode: 'lines',
-                            name: 'Umbral 50%',
-                            line: { color: '#666', width: 1, dash: 'dash' }
-                        }
-                    ];
+                    // Obtener las probabilidades para el forecast
+                    let upProbability = 0;
+                    let downProbability = 0;
                     
-                    // Agregar predicción futura si está disponible
                     if (stepData.future_prediction) {
-                        // Calcular la fecha futura basada en la última fecha de los datos
-                        const lastDate = new Date(stepData.dates[stepData.dates.length - 1]);
-                        const futureDate = new Date(lastDate);
-                        futureDate.setDate(futureDate.getDate() + stepData.future_prediction.prediction_days);
-                        
-                        traces.push({
-                            x: [futureDate.toISOString().split('T')[0]],
-                            y: [stepData.future_prediction.probability],
-                            type: 'scatter',
-                            mode: 'markers',
-                            name: `Predicción Futura (${stepData.future_prediction.probability.toFixed(3)} prob.)`,
-                            marker: {
-                                color: stepData.future_prediction.probability >= 0.5 ? '#2ca02c' : '#d62728',
-                                size: 15,
-                                symbol: 'star'
-                            }
-                        });
+                        upProbability = stepData.future_prediction.probability * 100;
+                        downProbability = (1 - stepData.future_prediction.probability) * 100;
+                    } else {
+                        // Usar la última probabilidad disponible como fallback
+                        const lastProb = stepData.probabilities[stepData.probabilities.length - 1];
+                        upProbability = lastProb * 100;
+                        downProbability = (1 - lastProb) * 100;
                     }
-
-                    const layout = {
-                        title: `Paso 3: Probabilidad de Incremento - ${modelName.replace('_', ' ').toUpperCase()} (${this.globalDays} días)`,
-                        xaxis: { 
-                            title: 'Fecha',
-                            type: 'date'
-                        },
-                        yaxis: { 
-                            title: 'Probabilidad de Incremento Significativo',
-                            range: [0, 1],
-                            tickformat: '.0%'
-                        },
-                        hovermode: 'x unified',
-                        legend: {
-                            orientation: 'h',
-                            y: -0.2
-                        },
-                        margin: { t: 50, b: 100, l: 60, r: 30 },
-                        annotations: [{
-                            text: `Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | F1: ${stepData.metrics.f1_score.toFixed(3)} | AUC: ${stepData.metrics.roc_auc.toFixed(3)}${stepData.future_prediction ? ` | Predicción ${stepData.future_prediction.prediction_days}d: ${(stepData.future_prediction.probability * 100).toFixed(1)}%` : ''}`,
-                            xref: 'paper', yref: 'paper',
-                            x: 0, y: 1.02, xanchor: 'left', yanchor: 'bottom',
-                            showarrow: false,
-                            font: { size: 12, color: '#666' }
-                        }]
-                    };
-
-                    const config = {
-                        responsive: true,
-                        displayModeBar: true,
-                        modeBarButtonsToRemove: ['pan2d', 'lasso2d']
-                    };
-
-                    Plotly.newPlot('step3Chart', traces, layout, config);
+                    
+                    // Determinar si es subida o bajada
+                    const isUp = upProbability > downProbability;
+                    
+                    // Crear el HTML del forecast completo con gráfico y predicción
+                    const forecastHTML = `
+                        <div class="forecast-container">
+                            <div class="forecast-chart">
+                                <canvas id="step3ProbChart" width="400" height="250"></canvas>
+                            </div>
+                            
+                            <div class="forecast-info">
+                                <div class="forecast-header">
+                                    <h5 class="forecast-title">Predicción de precio en ${this.step3Days} días</h5>
+                                    <small class="forecast-model">${modelName.replace('_', ' ').toUpperCase()}</small>
+                                </div>
+                                
+                                <div class="forecast-probabilities">
+                                    <div class="prob-item ${isUp ? 'main' : 'secondary'}">
+                                        <div class="prob-arrow up">↑</div>
+                                        <div class="prob-text">Subida: ${upProbability.toFixed(1)}%</div>
+                                    </div>
+                                    <div class="prob-item ${!isUp ? 'main' : 'secondary'}">
+                                        <div class="prob-arrow down">↓</div>
+                                        <div class="prob-text">Bajada: ${downProbability.toFixed(1)}%</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="forecast-date">
+                                    Fecha: ${futureDate.toLocaleDateString('es-ES', { 
+                                        day: 'numeric', 
+                                        month: 'numeric', 
+                                        year: 'numeric' 
+                                    })}
+                                </div>
+                                
+                                <div class="forecast-metrics">
+                                    <small>
+                                        Accuracy: ${(stepData.metrics.accuracy * 100).toFixed(1)}% | 
+                                        F1: ${stepData.metrics.f1_score.toFixed(3)} | 
+                                        AUC: ${stepData.metrics.roc_auc.toFixed(3)}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('step3Chart').innerHTML = forecastHTML;
+                    
+                    // Dibujar el gráfico de probabilidades
+                    setTimeout(() => {
+                        this.drawProbabilityChart(stepData.dates, stepData.probabilities);
+                    }, 100);
                     
                 } catch (error) {
                     console.error('Error en createStep3Chart:', error);
+                    // Limpiar listeners si hay error
+                    this.cleanupChartListeners();
                     document.getElementById('step3Chart').innerHTML = `
                         <div class="text-center text-danger p-4">
                             <i class="fas fa-chart-area fa-3x"></i>
-                            <p class="mt-3">Error cargando gráfico del Paso 3</p>
+                            <p class="mt-3">Error cargando forecast del Paso 3</p>
                         </div>
                     `;
                 }
+            }
+
+            cleanupChartListeners() {
+                // Limpiar tooltip
+                const tooltip = document.getElementById('chart-tooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+                
+                // Limpiar referencias
+                this.chartData = null;
+                this.chartZoom = null;
+                this.tooltip = null;
+            }
+
+            drawProbabilityChart(dates, probabilities) {
+                const canvas = document.getElementById('step3ProbChart');
+                if (!canvas) return;
+                
+                // Configurar interactividad
+                this.setupCanvasInteractivity(canvas, dates, probabilities);
+                
+                // Obtener solo los últimos 30 días para el zoom inicial
+                const last30Days = Math.min(30, dates.length);
+                const startIndex = Math.max(0, dates.length - last30Days);
+                
+                // Datos filtrados para los últimos 30 días
+                const filteredDates = dates.slice(startIndex);
+                const filteredProbs = probabilities.slice(startIndex);
+                
+                // Configurar el zoom inicial
+                this.chartZoom = {
+                    startIndex: startIndex,
+                    endIndex: dates.length - 1,
+                    isDragging: false,
+                    dragStart: null
+                };
+                
+                this.renderChart(canvas, dates, probabilities, this.chartZoom);
+            }
+
+            setupCanvasInteractivity(canvas, dates, probabilities) {
+                // Remover listeners anteriores
+                canvas.removeEventListener('mousedown', this.canvasMouseDown);
+                canvas.removeEventListener('mousemove', this.canvasMouseMove);
+                canvas.removeEventListener('mouseup', this.canvasMouseUp);
+                canvas.removeEventListener('wheel', this.canvasWheel);
+                canvas.removeEventListener('dblclick', this.canvasDoubleClick);
+                
+                // Bind de contexto para los métodos
+                this.canvasMouseDown = this.canvasMouseDown.bind(this);
+                this.canvasMouseMove = this.canvasMouseMove.bind(this);
+                this.canvasMouseUp = this.canvasMouseUp.bind(this);
+                this.canvasWheel = this.canvasWheel.bind(this);
+                this.canvasDoubleClick = this.canvasDoubleClick.bind(this);
+                
+                // Agregar event listeners
+                canvas.addEventListener('mousedown', this.canvasMouseDown);
+                canvas.addEventListener('mousemove', this.canvasMouseMove);
+                canvas.addEventListener('mouseup', this.canvasMouseUp);
+                canvas.addEventListener('wheel', this.canvasWheel);
+                canvas.addEventListener('dblclick', this.canvasDoubleClick);
+                
+                // Guardar referencia de datos
+                this.chartData = { dates, probabilities };
+                
+                // Crear tooltip
+                this.createTooltip();
+            }
+
+            createTooltip() {
+                // Remover tooltip anterior si existe
+                const existingTooltip = document.getElementById('chart-tooltip');
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
+                
+                // Crear nuevo tooltip
+                const tooltip = document.createElement('div');
+                tooltip.id = 'chart-tooltip';
+                tooltip.style.cssText = `
+                    position: absolute;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    pointer-events: none;
+                    z-index: 1000;
+                    display: none;
+                `;
+                document.body.appendChild(tooltip);
+                this.tooltip = tooltip;
+            }
+
+            canvasMouseDown(e) {
+                const canvas = e.target;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                
+                this.chartZoom.isDragging = true;
+                this.chartZoom.dragStart = x;
+                canvas.style.cursor = 'grabbing';
+            }
+
+            canvasMouseMove(e) {
+                const canvas = e.target;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                if (this.chartZoom.isDragging && this.chartZoom.dragStart !== null) {
+                    // Lógica de pan/arrastre
+                    const deltaX = x - this.chartZoom.dragStart;
+                    const padding = 40;
+                    const chartWidth = canvas.width - 2 * padding;
+                    const visibleRange = this.chartZoom.endIndex - this.chartZoom.startIndex;
+                    const pixelsPerIndex = chartWidth / visibleRange;
+                    const indexDelta = Math.floor(deltaX / pixelsPerIndex);
+                    
+                    if (Math.abs(indexDelta) > 0) {
+                        const newStart = Math.max(0, this.chartZoom.startIndex - indexDelta);
+                        const newEnd = Math.min(this.chartData.dates.length - 1, this.chartZoom.endIndex - indexDelta);
+                        
+                        if (newEnd - newStart === visibleRange) {
+                            this.chartZoom.startIndex = newStart;
+                            this.chartZoom.endIndex = newEnd;
+                            this.chartZoom.dragStart = x;
+                            this.renderChart(canvas, this.chartData.dates, this.chartData.probabilities, this.chartZoom);
+                        }
+                    }
+                } else {
+                    // Mostrar tooltip
+                    this.showTooltip(e, x, y);
+                }
+            }
+
+            canvasMouseUp(e) {
+                const canvas = e.target;
+                this.chartZoom.isDragging = false;
+                this.chartZoom.dragStart = null;
+                canvas.style.cursor = 'default';
+            }
+
+            canvasWheel(e) {
+                e.preventDefault();
+                const canvas = e.target;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                
+                // Zoom con rueda del mouse
+                const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+                const padding = 40;
+                const chartWidth = canvas.width - 2 * padding;
+                const currentRange = this.chartZoom.endIndex - this.chartZoom.startIndex;
+                const newRange = Math.max(5, Math.min(this.chartData.dates.length, Math.floor(currentRange * zoomFactor)));
+                
+                // Calcular punto de zoom basado en posición del mouse
+                const mousePos = (x - padding) / chartWidth;
+                const centerIndex = this.chartZoom.startIndex + mousePos * currentRange;
+                
+                const newStart = Math.max(0, Math.floor(centerIndex - newRange / 2));
+                const newEnd = Math.min(this.chartData.dates.length - 1, newStart + newRange);
+                
+                this.chartZoom.startIndex = newStart;
+                this.chartZoom.endIndex = newEnd;
+                
+                this.renderChart(canvas, this.chartData.dates, this.chartData.probabilities, this.chartZoom);
+            }
+
+            canvasDoubleClick(e) {
+                // Reset zoom a últimos 30 días
+                const last30Days = Math.min(30, this.chartData.dates.length);
+                this.chartZoom.startIndex = Math.max(0, this.chartData.dates.length - last30Days);
+                this.chartZoom.endIndex = this.chartData.dates.length - 1;
+                
+                this.renderChart(e.target, this.chartData.dates, this.chartData.probabilities, this.chartZoom);
+            }
+
+            showTooltip(e, x, y) {
+                const canvas = e.target;
+                const padding = 40;
+                const chartWidth = canvas.width - 2 * padding;
+                const chartHeight = canvas.height - 2 * padding;
+                
+                if (x >= padding && x <= canvas.width - padding && y >= padding && y <= canvas.height - padding) {
+                    const relativeX = (x - padding) / chartWidth;
+                    const visibleRange = this.chartZoom.endIndex - this.chartZoom.startIndex;
+                    const dataIndex = Math.floor(this.chartZoom.startIndex + relativeX * visibleRange);
+                    
+                    if (dataIndex >= 0 && dataIndex < this.chartData.dates.length) {
+                        const date = new Date(this.chartData.dates[dataIndex]).toLocaleDateString('es-ES');
+                        const prob = (this.chartData.probabilities[dataIndex] * 100).toFixed(1);
+                        
+                        this.tooltip.innerHTML = `
+                            <strong>Fecha:</strong> ${date}<br>
+                            <strong>Probabilidad:</strong> ${prob}%
+                        `;
+                        
+                        this.tooltip.style.display = 'block';
+                        this.tooltip.style.left = (e.clientX + 10) + 'px';
+                        this.tooltip.style.top = (e.clientY - 10) + 'px';
+                        return;
+                    }
+                }
+                
+                this.tooltip.style.display = 'none';
+            }
+
+            renderChart(canvas, dates, probabilities, zoom) {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Limpiar canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Configuración del gráfico
+                const padding = 40;
+                const chartWidth = width - 2 * padding;
+                const chartHeight = height - 2 * padding;
+                
+                // Datos filtrados según el zoom
+                const visibleDates = dates.slice(zoom.startIndex, zoom.endIndex + 1);
+                const visibleProbs = probabilities.slice(zoom.startIndex, zoom.endIndex + 1);
+                
+                // Dibujar ejes
+                ctx.strokeStyle = '#ddd';
+                ctx.lineWidth = 1;
+                
+                // Eje Y (probabilidad)
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                ctx.stroke();
+                
+                // Eje X (tiempo)
+                ctx.beginPath();
+                ctx.moveTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                ctx.stroke();
+                
+                // Líneas de grid horizontales
+                for (let i = 0; i <= 10; i++) {
+                    const y = padding + (i / 10) * chartHeight;
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(width - padding, y);
+                    ctx.strokeStyle = i === 5 ? '#ccc' : '#f0f0f0';
+                    ctx.stroke();
+                }
+                
+                // Etiquetas del eje Y
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'right';
+                for (let i = 0; i <= 10; i++) {
+                    const y = height - padding - (i / 10) * chartHeight;
+                    ctx.fillText(`${i * 10}%`, padding - 5, y + 4);
+                }
+                
+                // Etiquetas del eje X (fechas)
+                ctx.textAlign = 'center';
+                const maxLabels = 5;
+                const labelStep = Math.max(1, Math.floor(visibleDates.length / maxLabels));
+                for (let i = 0; i < visibleDates.length; i += labelStep) {
+                    const x = padding + (i / (visibleDates.length - 1)) * chartWidth;
+                    const date = new Date(visibleDates[i]).toLocaleDateString('es-ES', { 
+                        day: 'numeric', 
+                        month: 'short' 
+                    });
+                    ctx.fillText(date, x, height - padding + 20);
+                }
+                
+                // Dibujar línea de probabilidad
+                if (visibleProbs.length > 1) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#3498db';
+                    ctx.lineWidth = 2;
+                    
+                    for (let i = 0; i < visibleProbs.length; i++) {
+                        const x = padding + (i / (visibleProbs.length - 1)) * chartWidth;
+                        const y = height - padding - (visibleProbs[i] * chartHeight);
+                        
+                        if (i === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.stroke();
+                    
+                    // Dibujar puntos
+                    ctx.fillStyle = '#3498db';
+                    for (let i = 0; i < visibleProbs.length; i++) {
+                        const x = padding + (i / (visibleProbs.length - 1)) * chartWidth;
+                        const y = height - padding - (visibleProbs[i] * chartHeight);
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                        ctx.fill();
+                    }
+                }
+                
+                // Línea de 50%
+                ctx.beginPath();
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                const middleY = height - padding - (0.5 * chartHeight);
+                ctx.moveTo(padding, middleY);
+                ctx.lineTo(width - padding, middleY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Etiqueta de 50%
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText('50%', width - padding + 5, middleY + 4);
+                
+                // Título del gráfico
+                ctx.fillStyle = '#333';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Evolución de Probabilidad de Incremento ', width / 2, 20);
+                
+                // Instrucciones
+                ctx.fillStyle = '#999';
+                ctx.font = '10px Arial';
+                ctx.fillText('Rueda: Zoom | Arrastrar: Pan | Doble clic: Reset', width / 2, height - 5);
             }
 
             async createVolumeChart() {
@@ -816,46 +1388,6 @@
                 }
             }
 
-            updateMetrics() {
-                try {
-                    console.log('Actualizando métricas...');
-                    
-                    if (!this.data) {
-                        console.log('No hay datos disponibles para métricas');
-                        return;
-                    }
-                    
-                    // Mostrar métricas generales basadas en el último precio disponible
-                    const lastPrice = this.data.prices ? this.data.prices[this.data.prices.length - 1] : 0;
-                    
-                    // Valores por defecto hasta que se carguen los datos específicos
-                    document.getElementById('rmseValue').textContent = 'Cargando...';
-                    document.getElementById('maeValue').textContent = 'Cargando...';
-                    document.getElementById('r2Value').textContent = 'Cargando...';
-                    document.getElementById('lastPrice').textContent = `$${lastPrice.toFixed(2)}`;
-                    
-                    console.log('Métricas actualizadas');
-                } catch (error) {
-                    console.error('Error actualizando métricas:', error);
-                    // Valores por defecto en caso de error
-                    document.getElementById('rmseValue').textContent = 'N/A';
-                    document.getElementById('maeValue').textContent = 'N/A';
-                    document.getElementById('r2Value').textContent = 'N/A';
-                    document.getElementById('lastPrice').textContent = 'N/A';
-                }
-            }
-
-            updateStep1Metrics(metrics) {
-                try {
-                    // Actualizar métricas del Paso 1 (regresión)
-                    document.getElementById('rmseValue').textContent = metrics.rmse ? metrics.rmse.toFixed(2) : 'N/A';
-                    document.getElementById('maeValue').textContent = metrics.mae ? metrics.mae.toFixed(2) : 'N/A';
-                    document.getElementById('r2Value').textContent = metrics.r2 ? metrics.r2.toFixed(3) : 'N/A';
-                    console.log('Métricas del Paso 1 actualizadas');
-                } catch (error) {
-                    console.error('Error actualizando métricas del Paso 1:', error);
-                }
-            }
         }
 
         // Inicializar dashboard cuando se carga la página
